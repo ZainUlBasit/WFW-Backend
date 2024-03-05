@@ -20,6 +20,7 @@
     "jsonwebtoken": "^9.0.0",
     "moment": "^2.29.4",
     "momment": "^0.0.1",
-    "mongoose": "^6.8.2"
+    "mongoose": "^6.8.2",
+    "nodemon": "^3.1.0"
   }
 }
