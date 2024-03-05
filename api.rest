@@ -1,0 +1,6 @@
+GET http://localhost:8000/api/item HTTP/1.1
+Content-Type: : application/json
+
+{
+    "email":"hello@gmail.com"
+}
