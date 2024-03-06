@@ -54,15 +54,15 @@ mongoose
 
 app.use("/api/auth", AuthRoutes);
 app.use("/api/company", CompanyRoutes);
-api.use("/api/item", ItemRoutes);
-api.use("/api/category", CategoryRoutes);
-api.use("/api/sub-category", SubCategoryRoutes);
-api.use("/api/sub-category", CustomerRoutes);
-api.use("/api/customer", CustomerRoutes);
-api.use("/api/sale", SalesRoutes);
-api.use("/api/sale-return", SalesReturnRoutes);
-api.use("/api/report", ReportRoutes);
-api.use("/api/payment", PaymentRoutes);
+app.use("/api/item", ItemRoutes);
+app.use("/api/category", CategoryRoutes);
+app.use("/api/sub-category", SubCategoryRoutes);
+app.use("/api/sub-category", CustomerRoutes);
+app.use("/api/customer", CustomerRoutes);
+app.use("/api/sale", SalesRoutes);
+app.use("/api/sale-return", SalesReturnRoutes);
+app.use("/api/report", ReportRoutes);
+app.use("/api/payment", PaymentRoutes);
 
 server.listen(port, () => {
   console.log(`Listening to port ${port}`);
