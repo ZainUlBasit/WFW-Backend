@@ -1,6 +1,5 @@
 const Joi = require("joi");
 const Company = require("../Models/Company");
-const CompanyPayment = require("../Models/CompanyPayment");
 const { createError, successMessage } = require("../utils/ResponseMessage");
 
 const getAllCompanies = async (req, res, next) => {
@@ -22,7 +21,7 @@ const getBranchCompanies = async (req, res, next) => {
   const companySchema = Joi.object({
     branch: Joi.number().required(),
   });
-  
+
   const { error } = companySchema.validate(req.body.values);
   if (error) return createError(res, 422, error.message);
 
