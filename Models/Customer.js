@@ -1,9 +1,4 @@
 const mongoose = require("mongoose");
-const {
-  mongoReqStr,
-  mongoReqNum,
-  mongoDefNum,
-} = require("../utils/MongoTypes");
 const Schema = mongoose.Schema;
 // Name
 // Contact
@@ -14,21 +9,30 @@ const Schema = mongoose.Schema;
 // Address
 // Shop
 
+const reqStr = {
+  type: String,
+  required: true,
+};
+const reqNum = {
+  type: String,
+  required: true,
+};
+
 const CustomerSchema = new Schema({
-  name: mongoReqStr,
-  email: mongoReqStr,
-  password: mongoReqStr,
-  cnic: mongoReqStr,
-  contact: mongoReqStr,
-  address: mongoReqStr,
-  branch: mongoReqNum,
-  ref: mongoReqStr,
-  page: mongoReqNum,
-  return_amount: mongoDefNum,
-  discount: mongoDefNum,
-  paid: mongoDefNum,
-  remaining: mongoDefNum,
-  total: mongoDefNum,
+  name: reqStr,
+  email: reqStr,
+  password: reqStr,
+  cnic: reqStr,
+  contact: reqStr,
+  address: reqStr,
+  branch: reqNum,
+  ref: reqStr,
+  page: reqNum,
+  return_amount: { type: Number, default: 0, required: true },
+  discount: { type: Number, default: 0, required: true },
+  paid: { type: Number, default: 0, required: true },
+  remaining: { type: Number, default: 0, required: true },
+  total: { type: Number, default: 0, required: true },
 });
 
 module.exports = mongoose.model("Customer", CustomerSchema);
