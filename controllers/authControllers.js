@@ -101,7 +101,7 @@ function authControllers() {
         return res.status(409).json({ message: "Email already registered" });
       }
 
-      if (!name || !pic || !role || !email || !password || !confirmPassword) {
+      if (!name || !role || !email || !password || !confirmPassword) {
         return res.status(422).json({ message: "All fields are required" });
       }
       if (password !== confirmPassword) {
