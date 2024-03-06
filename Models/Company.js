@@ -19,10 +19,19 @@ const CompanySchema = new Schema({
   cnic: reqStr,
   description: reqStr,
   address: reqStr,
-  shop: reqStr,
-  total: reqNum,
-  paid: reqNum,
-  remaining: reqNum,
+  branch: reqNum,
+  total: {
+    type: Number,
+    default: 0,
+  },
+  paid: {
+    type: Number,
+    default: 0,
+  },
+  remaining: {
+    type: Number,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model("Company", CompanySchema);

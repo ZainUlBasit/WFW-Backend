@@ -5,12 +5,16 @@ const reqStr = {
   type: String,
   required: true,
 };
+const reqNum = {
+  type: Number,
+  required: true,
+};
 
 const SubCategorySchema = new Schema({
   company_id: reqStr,
   categoryname: reqStr,
-  subcategoryname: reqStr,
-  shop: reqStr,
+  name: reqStr,
+  branch: reqNum,
 });
 
 module.exports = mongoose.model("SubCategory", SubCategorySchema);

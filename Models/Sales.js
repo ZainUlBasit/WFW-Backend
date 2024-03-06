@@ -17,19 +17,16 @@ const reqDate = {
   required: true,
 };
 
-const CustomerTransactionSchema = new Schema({
-  customerid: reqStr,
-  shop: reqStr,
-  date: reqDate,
-  billNo: reqNum,
+const SalesSchema = new Schema({
+  reciept_no: reqNum,
   name: reqStr,
   qty: reqNum,
-  unitprice: reqNum,
+  price: reqNum,
   purchase: reqNum,
   total: reqNum,
 });
 
 module.exports = mongoose.model(
-  "CustomerTransaction",
-  CustomerTransactionSchema
+  "sales",
+  SalesSchema
 );

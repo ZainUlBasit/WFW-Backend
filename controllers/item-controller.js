@@ -1,23 +1,43 @@
+const Joi = require("joi");
 const Company = require("../Models/Company");
 const Item = require("../Models/Item");
+const { createError, successMessage } = require("../utils/ResponseMessage");
 
 //******************************************************
 // working
 //******************************************************
 const getAllItems = async (req, res, next) => {
-  const { shop } = req.body;
-  console.log(shop);
   let items;
   try {
-    if (shop === "Admin") items = await Item.find();
-    else items = await Item.find({ itemshop: shop });
+    items = await Item.find();
+    if (!items) return createError(res, 404, "Items record not found!");
+    return successMessage(res, items, null);
   } catch (err) {
     console.log(err);
+    return createError(res, 500, err.message || err);
   }
-  if (!items) {
-    return res.status(404).json({ message: "No Item Found" });
+};
+
+const getBranchItems = async (req, res, next) => {
+  const { branch } = req.body;
+
+  const itemSchema = Joi.object({
+    branch: Joi.number().required(),
+  });
+  
+  const { error } = itemSchema.validate(req.body.values);
+  if (error) return createError(res, 422, error.message);
+
+  let items;
+  try {
+    items = await Item.find({ branch });
+    if (!items)
+      return createError(res, 404, "Items record not found for branch!");
+    return successMessage(res, items, null);
+  } catch (err) {
+    console.log(err);
+    return createError(res, 500, err.message || err);
   }
-  return res.status(200).json(items);
 };
 //******************************************************
 // working
@@ -35,85 +55,107 @@ const addManyItem = async (req, res, next) => {
   }
   return res.status(201).json({ item });
 };
+// Add Item
 const addItem = async (req, res, next) => {
   let item;
   const {
-    itemcode,
-    itemname,
-    itemcompany,
-    itemcategory,
-    itemsubcategory,
-    itemunit,
-    itempurchase,
-    itemsale,
-    itemqty,
-    itemshop,
-    itemaddeddate,
+    code,
+    name,
+    company,
+    category,
+    subcategory,
+    unit,
+    purchase,
+    sale,
+    qty,
+    shop,
+    addeddate = Math.floor(Date.now() / 1000),
   } = req.body;
-  try {
-    item = new Item({
-      itemcode,
-      itemname,
-      itemcompany,
-      itemcategory,
-      itemsubcategory,
-      itemunit,
-      itempurchase,
-      itemsale,
-      itemqty,
-      itemshop,
-      itemaddeddate,
-    });
-    await item.save();
-    console.log(item);
-  } catch (err) {
-    console.log(err);
-  }
 
-  if (!item) {
-    return res.status(500).json({ message: "Unable to Add Item" });
+  const reqStr = Joi.string().required();
+  const reqNum = Joi.number().required();
+
+  const itemSchema = Joi.object({
+    code: reqStr,
+    name: reqStr,
+    company: reqStr,
+    companyId: reqStr,
+    category: reqStr,
+    subcategory: reqStr,
+    unit: reqStr,
+    purchase: reqNum,
+    sale: reqNum,
+    qty: reqNum,
+    branch: reqNum,
+  });
+  const { error } = itemSchema.validate(req.body.values);
+  if (error) return createError(res, 422, error.message);
+
+  try {
+    item = await new Item({
+      code,
+      name,
+      company,
+      category,
+      subcategory,
+      unit,
+      purchase,
+      sale,
+      qty,
+      branch,
+      addeddate,
+    }).save();
+    if (!item) return createError(res, 400, "Unable to add new Item!");
+    return successMessage(res, item, "Item Successfully Created!");
+  } catch (err) {
+    return createError(res, 500, err.message || err);
   }
-  return res.status(201).json({ item });
 };
 //******************************************************
-// working
+// working done
 //******************************************************
 const updateItem = async (req, res, next) => {
-  const itemId = req.params.id;
-  const {
-    itemcode,
-    itemname,
-    itemcompany,
-    itemcategory,
-    itemsubcategory,
-    itemunit,
-    itempurchase,
-    itemsale,
-  } = req.body;
+  const { itemId, payload } = req.body;
+  // check the payload
+  const reqStr = Joi.string().required();
+  const reqNum = Joi.number().required();
+
+  const companyPayloadSchema = Joi.object({
+    code: reqStr,
+    name: reqStr,
+    company: reqStr,
+    companyId: reqStr,
+    category: reqStr,
+    subcategory: reqStr,
+    unit: reqStr,
+    purchase: reqNum,
+    sale: reqNum,
+    qty: reqNum,
+    branch: reqNum,
+  });
+  const CompanyUpdateSchema = Joi.object({
+    itemId: reqStr,
+    payload: Joi.object().min(1).required().keys(companyPayloadSchema),
+  });
+  // check if the validation returns error
+  const { error } = CompanyUpdateSchema.validate(req.body.values);
+  if (error) {
+    return createError(res, 422, error.message);
+  }
   let item;
   try {
-    item = await Item.findByIdAndUpdate(
-      itemId,
-      {
-        itemcode: itemcode,
-        itemname: itemname,
-        itemcompany: itemcompany,
-        itemcategory: itemcategory,
-        itemsubcategory: itemsubcategory,
-        itemunit: itemunit,
-        itempurchase: itempurchase,
-        itemsale: itemsale,
-      },
-      { new: true },
-      (err, data) => {
-        if (data === null) {
-          return res.status(404).json({ message: "Item not found" });
-        } else {
-          return res.status(200).json({ item });
-        }
-      }
-    );
-  } catch (err) {}
+    item = await Item.findById(itemId);
+    if (!item) {
+      return createError(res, 404, "Item with such id was not found!");
+    }
+    // Update item properties
+    Object.assign(item, payload);
+    // Save the updated item
+    await item.save();
+    return successMessage(res, item, "Item Successfully Updated!");
+  } catch (err) {
+    return createError(res, 500, err.message || err);
+  }
 };
 //******************************************************
 // working
@@ -143,22 +185,28 @@ const updateItemQty = async (req, res, next) => {
 // working
 //******************************************************
 const deleteItem = async (req, res, next) => {
-  const itemId = req.params.id;
+  const { itemId } = req.body;
+  if (!itemId) return createError(res, 422, "Invalid Item Id!");
   try {
-    const delItem = await Item.findByIdAndDelete(itemId);
-    if (!itemId) {
-      return res.status(400).json({ message: "Bad Request" });
-    } else {
-      return res.status(201).json({ delItem });
-    }
-  } catch (err) {
-    return res.status(500).json(err);
+    const DeleteItem = await Company.findByIdAndDelete(itemId);
+    if (!DeleteItem)
+      return createError(res, 400, "Such Item with itemId does not exist!");
+    return successMessage(
+      res,
+      DeleteItem,
+      `Item ${DeleteItem.name} is successfully deleted!`
+    );
+  } catch (error) {
+    return createError(res, 500, error.message || error);
   }
 };
 
-exports.getAllItems = getAllItems;
-exports.addItem = addItem;
-exports.addManyItem = addManyItem;
-exports.updateItem = updateItem;
-exports.deleteItem = deleteItem;
-exports.updateItemQty = updateItemQty;
+module.exports = {
+  getBranchItems,
+  getAllItems,
+  addItem,
+  addManyItem,
+  updateItem,
+  deleteItem,
+  updateItemQty,
+};

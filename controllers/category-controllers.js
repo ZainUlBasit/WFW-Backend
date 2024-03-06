@@ -1,81 +1,128 @@
+const Joi = require("joi");
 const Category = require("../Models/Category");
+const { createError, successMessage } = require("../utils/ResponseMessage");
 
 const addCategory = async (req, res, next) => {
   let category;
-  const { company_id, categoryname, shop } = req.body;
+  const { company_id, name, shop } = req.body;
+
+  const reqStr = Joi.string().required();
+  const reqNum = Joi.number().required();
+
+  const categorySchema = Joi.object({
+    company_id: reqStr,
+    name: reqStr,
+    branch: reqNum,
+  });
+  const { error } = categorySchema.validate(req.body.values);
+  if (error) return createError(res, 422, error.message);
+
   try {
-    category = new Category({
+    category = await new Category({
       company_id,
-      categoryname,
+      name,
       shop,
-    });
-    await category.save();
+    }).save();
+    if (!category) return createError(res, 400, "Unable to Add Category!");
+    return successMessage(res, category, "Category Successfully Added!");
   } catch (err) {
     console.log(err);
+    return createError(res, 500, err.message || err);
   }
-
-  if (!category) {
-    return res.status(500).json({ message: "Unable to add category" });
-  }
-  return res.status(201).json({ category });
 };
-
 const getAllCategories = async (req, res, next) => {
-  const { shop } = req.body;
   let categories;
   try {
-    if (shop === "Admin") categories = await Category.find();
-    else categories = await Category.find({ shop });
+    categories = await Category.find();
+    if (!categories) return createError(res, 404, "No Category record found!");
+    return successMessage(res, categories, null);
   } catch (err) {
     console.log(err);
+    return createError(res, 500, err.message || err);
   }
-  if (!categories)
-    return res.status(404).json({ message: "No category found...!" });
-  return res.status(200).json(categories);
 };
+const getBranchCategories = async (req, res, next) => {
+  const { branch } = req.body;
+  const CategorySchema = Joi.object({
+    branch: Joi.number().required(),
+  });
+
+  const { error } = CategorySchema.validate(req.body.values);
+  if (error) return createError(res, 422, error.message);
+
+  let categories;
+  try {
+    categories = await Category.find({ branch });
+    if (!categories) return createError(res, 404, "No Category record found!");
+    return successMessage(res, categories, null);
+  } catch (err) {
+    console.log(err);
+    return createError(res, 500, err.message || err);
+  }
+};
+
 //******************************************************
 // working
 //******************************************************
 const updateCategory = async (req, res, next) => {
-  const id = req.params.id;
+  const { categoryId, payload } = req.body;
+  const reqStr = Joi.string().required();
+  const reqNum = Joi.number().required();
+  const categoryPayloadSchema = Joi.object({
+    name: reqStr,
+    branch: reqNum,
+  });
+  const CategoryUpdateSchema = Joi.object({
+    categoryId: reqStr,
+    payload: Joi.object().min(1).required().keys(categoryPayloadSchema),
+  });
+  // check if the validation returns error
+  const { error } = CategoryUpdateSchema.validate(req.body.values);
+  if (error) return createError(res, 422, error.message);
+
   let category;
-  let { categoryNew } = req.body;
   try {
-    category = await Category.findByIdAndUpdate(
-      id,
-      {
-        categoryname: categoryNew,
-      },
-      { new: true },
-      (err, data) => {
-        if (data === null) {
-          return res.status(404).json({ message: "Sub Category not found" });
-        } else {
-          return res.status(200).json({ category });
-        }
-      }
-    );
-  } catch (err) {}
+    category = await Category.findById(categoryId);
+    if (!category)
+      return createError(res, 404, "Category with such id was not found!");
+    Object.assign(category, payload);
+
+    await category.save();
+    return successMessage(res, category, "Category Successfully Updated!");
+  } catch (err) {
+    return createError(res, 500, error.message || error);
+  }
 };
+
 //******************************************************
 // working
 //******************************************************
 const deleteCategory = async (req, res, next) => {
-  const id = req.params.id;
-  console.log(id);
+  const { categoryId } = req.body;
+
   try {
-    const delCat = await Category.findByIdAndDelete(id);
-    if (!delCat) {
-      return res.status(400).json({ message: "Bad Request" });
-    } else {
-      return res.status(201).json(delCat);
-    }
+    const delCat = await Category.findByIdAndDelete(categoryId);
+    if (!delCat)
+      return createError(
+        res,
+        400,
+        "Such Category with categoryId does not exist!"
+      );
+    else
+      return successMessage(
+        res,
+        delCat,
+        `Category ${delCat.name} is successfully deleted!`
+      );
   } catch (err) {
-    return res.status(500).json(err);
+    return createError(res, 500, err.message || err);
   }
 };
 
-exports.addCategory = addCategory;
-exports.getAllCategories = getAllCategories;
-exports.updateCategory = updateCategory;
-exports.deleteCategory = deleteCategory;
+module.exports = {
+  getBranchCategories,
+  addCategory,
+  getAllCategories,
+  updateCategory,
+  deleteCategory,
+};

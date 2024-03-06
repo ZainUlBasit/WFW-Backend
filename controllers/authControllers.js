@@ -24,13 +24,17 @@ function authControllers() {
       const { email, password } = req.body;
       const user = await User.findOne({ email });
       if (!user) {
-        return res.status(422).json({ message: "Email or password incorrect1" });
+        return res
+          .status(422)
+          .json({ message: "Email or password incorrect1" });
       }
 
       // check user password using bcrypt
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(403).json({ message: "Email or password incorrect2" });
+        return res
+          .status(403)
+          .json({ message: "Email or password incorrect2" });
       }
       const { accessToken, refreshToken } = JwtService.generateToken({
         _id: user._id,
@@ -61,7 +65,7 @@ function authControllers() {
     register: async (req, res) => {
       // validate req using joi
       const registerSchema = Joi.object({
-        fullName: Joi.string().required(),
+        name: Joi.string().required(),
         email: Joi.string().email().required(),
         password: Joi.string()
           .pattern(new RegExp("^[a-zA-Z0-9]{5,15}$"))
@@ -75,7 +79,7 @@ function authControllers() {
             "string.max": "Password must be upto 15 characters ",
           }),
         confirmPassword: Joi.ref("password"),
-        role: Joi.string().required(),
+        role: Joi.number().valid(1, 2, 3).required(),
         pic: Joi.string().required(),
       });
       const { error } = registerSchema.validate(req.body.values);
@@ -84,21 +88,13 @@ function authControllers() {
       }
 
       // check if email has not register yet
-      const { fullName, email, password, confirmPassword, pic, role } =
-        req.body;
+      const { name, email, password, confirmPassword, pic, role } = req.body;
       const user = await User.exists({ email });
       if (user) {
         return res.status(409).json({ message: "Email already registered" });
       }
 
-      if (
-        !fullName ||
-        !pic ||
-        !role ||
-        !email ||
-        !password ||
-        !confirmPassword
-      ) {
+      if (!name || !pic || !role || !email || !password || !confirmPassword) {
         return res.status(422).json({ message: "All fields are required" });
       }
       if (password !== confirmPassword) {
@@ -112,7 +108,7 @@ function authControllers() {
 
         // register user
         newUser = new User({
-          fullName,
+          name,
           email,
           password: hashedPassword,
           role,

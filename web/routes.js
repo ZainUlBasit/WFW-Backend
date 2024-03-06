@@ -20,7 +20,7 @@ const BankController = require("../controllers/BankController");
 const CustomerPaymentController = require("../controllers/customerPaymentController");
 
 const TitemController = require("../controllers/titem-controller");
-const CustomerTransaction = require("../Models/CustomerTransaction");
+const CustomerTransaction = require("../Models/Sale");
 
 router.post("/get-item", TitemController.getAllItems);
 router.post("/post-item", TitemController.addItem);

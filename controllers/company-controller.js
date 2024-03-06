@@ -1,102 +1,150 @@
+const Joi = require("joi");
 const Company = require("../Models/Company");
 const CompanyPayment = require("../Models/CompanyPayment");
+const { createError, successMessage } = require("../utils/ResponseMessage");
 
 const getAllCompanies = async (req, res, next) => {
-  const { shop } = req.body;
-  console.log(req.body);
   let companies;
   try {
-    if (shop === "Admin") companies = await Company.find();
-    else companies = await Company.find({ shop });
+    companies = await Company.find();
   } catch (err) {
     console.log(err);
+    return createError(res, 400, "Internal Server Error. Please Try Again!");
   }
   if (!companies) {
-    return res.status(404).json({ message: "No Company Found...." });
+    return createError(res, 404, "Companies record not found!");
   }
-  return res.status(200).json(companies);
+  return successMessage(res, companies, null);
+};
+const getBranchCompanies = async (req, res, next) => {
+  const { branch } = req.body;
+
+  const companySchema = Joi.object({
+    branch: Joi.number().required(),
+  });
+  
+  const { error } = companySchema.validate(req.body.values);
+  if (error) return createError(res, 422, error.message);
+
+  let companies;
+  try {
+    companies = await Company.find({ branch });
+  } catch (err) {
+    console.log(err);
+    return createError(res, 400, "Internal Server Error. Please Try Again!");
+  }
+  if (!companies) {
+    return createError(res, 404, "Companies record not found!");
+  }
+  return successMessage(res, companies, null);
 };
 
-const addCompany = async (req, res, next) => {
+const CreateCompany = async (req, res, next) => {
   let company;
-  const {
-    name,
-    email,
-    contact,
-    cnic,
-    description,
-    address,
-    shop,
-    total,
-    paid,
-    remaining,
-  } = req.body;
+  const { name, email, contact, cnic, description, address, branch } = req.body;
+
+  const companySchema = Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    contact: Joi.string().required(),
+    cnic: Joi.string().required(),
+    description: Joi.string().required(),
+    address: Joi.string().required(),
+    branch: Joi.string().required(),
+  });
+
+  const { error } = companySchema.validate(req.body.values);
+  if (error) {
+    return createError(res, 422, error.message);
+  }
+
   try {
-    company = new Company({
+    company = await new Company({
       name,
       email,
       contact,
       cnic,
       description,
       address,
-      shop,
+      branch,
       total,
       paid,
       remaining,
-    });
-    await company.save();
+    }).save();
   } catch (err) {
     console.log(err);
+    return createError(res, 400, "Internal Server Error. Please Try Again!");
   }
-
   if (!company) {
-    return res.status(500).json({ message: "Unable to Add Company" });
+    return createError(res, 400, "Unable to Add Company!");
   }
-  return res.status(201).json({ company });
+  return successMessage(res, company, "Company Successfully Added!");
 };
 
 const updateCompany = async (req, res, next) => {
-  const companyId = req.params.id;
-  const { name, email, contact, cnic, description, address } = req.body;
+  // const companyId = req.params.id;
+  const { companyId, payload } = req.body;
+  // check the payload
+  const reqStr = Joi.string().required();
+  const reqNum = Joi.number().required();
+  const companyPayloadSchema = Joi.object({
+    name: reqStr,
+    email: reqStr.email(),
+    contact: reqStr,
+    cnic: reqStr,
+    description: reqStr,
+    address: reqStr,
+    branch: reqNum,
+  });
+  const CompanyUpdateSchema = Joi.object({
+    companyId: reqStr,
+    payload: Joi.object().min(1).required().keys(companyPayloadSchema),
+  });
+  // check if the validation returns error
+  const { error } = CompanyUpdateSchema.validate(req.body.values);
+  if (error) {
+    return createError(res, 422, error.message);
+  }
   let company;
   try {
-    company = await Company.findOneAndUpdate(
-      { _id: companyId },
-      {
-        $set: {
-          name: name,
-          email: email,
-          contact: contact,
-          cnic: cnic,
-          description: description,
-          address: address,
-        },
-      },
-      { new: true },
-      (err, data) => {
-        if (data === null) {
-          return res.status(404).json({ message: "Company not found" });
-        } else {
-          return res.status(200).json({ company });
-        }
-      }
-    );
-  } catch (err) {}
+    // find company by id
+    company = await Company.findById(companyId);
+    // if company not found
+    if (!company)
+      return createError(res, 404, "Company with such id was not found!");
+
+    // Update company properties
+    Object.assign(company, payload);
+    // Save the updated company
+    await company.save();
+    return successMessage(res, company, "Company Successfully Updated!");
+  } catch (err) {
+    return createError(res, 500, error.message || error);
+  }
 };
 
 const deleteCompany = async (req, res, next) => {
-  const companyId = req.params.id;
+  const { companyId } = req.body;
+  if (!companyId) return createError(res, 422, "Invalid Company Id!");
   try {
     const delCompany = await Company.findByIdAndDelete(companyId);
-    if (!companyId) {
-      return res.status(400).json({ message: "Bad Request" });
-    } else {
-      return res.status(201).json({ delCompany });
-    }
-  } catch (err) {
-    return res.status(500).json(err);
+    if (!delCompany)
+      return createError(
+        res,
+        400,
+        "Such Company with companyId does not exist!"
+      );
+    return successMessage(
+      res,
+      delCompany,
+      `Company ${delCompany.name} is successfully deleted!`
+    );
+  } catch (error) {
+    return createError(res, 500, error.message || error);
   }
 };
+
+// all done crud operation
 
 const updateCompanyTotal = async (req, res, next) => {
   const companyid = req.params.id;
@@ -197,11 +245,14 @@ const getCompanyPayment = async (req, res, next) => {
   return res.status(201).json(companyPayment);
 };
 
-exports.getAllCompanies = getAllCompanies;
-exports.addCompany = addCompany;
-exports.updateCompany = updateCompany;
-exports.deleteCompany = deleteCompany;
-exports.updateCompanyTotal = updateCompanyTotal;
-exports.addCompanyPayment = addCompanyPayment;
-exports.getCompanyPayment = getCompanyPayment;
-exports.updateCompanyPayment = updateCompanyPayment;
+module.exports = {
+  getAllCompanies,
+  getBranchCompanies,
+  CreateCompany,
+  updateCompany,
+  deleteCompany,
+  updateCompanyTotal,
+  addCompanyPayment,
+  getCompanyPayment,
+  updateCompanyPayment,
+};

@@ -18,17 +18,18 @@ const reqDate = {
 };
 
 const itemSchema = new Schema({
-  itemcode: reqStr,
-  itemname: reqStr,
-  itemcompany: reqStr,
-  itemcategory: reqStr,
-  itemsubcategory: reqStr,
-  itemunit: reqStr,
-  itempurchase: reqNum,
-  itemsale: reqNum,
-  itemqty: reqNum,
-  itemshop: reqStr,
-  itemaddeddate: reqDate,
+  code: reqStr,
+  name: reqStr,
+  company: reqStr,
+  companyId: reqStr,
+  category: reqStr,
+  subcategory: reqStr,
+  unit: reqStr,
+  purchase: reqNum,
+  sale: reqNum,
+  qty: { type: Number, default: 0 },
+  branch: reqNum,
+  addeddate: { type: Number, default: Math.floor(Date.now() / 1000) },
 });
 
 module.exports = mongoose.model("Item", itemSchema);

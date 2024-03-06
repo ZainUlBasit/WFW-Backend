@@ -7,10 +7,14 @@ const reqStr = {
 };
 
 const UserSchema = new Schema({
-  fullName: reqStr,
+  name: reqStr,
   email: reqStr,
   password: reqStr,
-  role: reqStr,
+  role: {
+    type: Number,
+    enum: [1, 2, 3], // 1: admin, 2: Branch, 3: Customer
+    required: true,
+  },
   pic: reqStr,
 });
 

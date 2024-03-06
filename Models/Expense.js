@@ -11,16 +11,11 @@ const reqNum = {
   required: true,
 };
 
-const reqDate = {
-  type: Date,
-  required: true,
-};
-
 const ExpenseSchema = new Schema({
-  date: reqDate,
+  date: { type: Number, default: Math.floor(Date.now() / 1000) },
   desc: reqStr,
   expense: reqNum,
-  shop: reqStr,
+  branch: reqNum,
 });
 
 module.exports = mongoose.model("Expense", ExpenseSchema);
