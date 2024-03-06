@@ -188,7 +188,11 @@ const DeleteSale = async (req, res, next) => {
   try {
     const DeleteSale = await SaleReturn.findByIdAndDelete(saleId);
     if (!DeleteSale)
-      return createError(res, 400, "Such Sale Return with saleId does not exist!");
+      return createError(
+        res,
+        400,
+        "Such Sale Return with saleId does not exist!"
+      );
     // Delete associated sales records
     const deletedSales = await Sales.deleteMany({
       _id: { $in: DeleteSale.sales },
@@ -210,11 +214,4 @@ module.exports = {
   GetBranchSales,
   UpdateSales,
   DeleteSale,
-
-  addManyCustomerTransaction,
-  deleteCustomerTransaction,
-  getCustomerTransaction,
-  getAllCustomerTransaction,
-  getAllTransactionSortedByDate,
-  getAllTransactionSortedByBillNo,
 };
