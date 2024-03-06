@@ -4,7 +4,6 @@ const UserDto = (user) => {
     name: user.fullName,
     email: user.email,
     role: user.role,
-    pic: user.pic,
   };
   return userdata;
 };

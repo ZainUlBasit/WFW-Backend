@@ -80,7 +80,6 @@ function authControllers() {
           }),
         confirmPassword: Joi.ref("password"),
         role: Joi.number().valid(1, 2, 3).required(),
-        pic: Joi.string(),
       });
       const { error } = registerSchema.validate(req.body.values);
       if (error) {
@@ -88,14 +87,7 @@ function authControllers() {
       }
 
       // check if email has not register yet
-      const {
-        name,
-        email,
-        password,
-        confirmPassword,
-        pic = null,
-        role,
-      } = req.body;
+      const { name, email, password, confirmPassword, role } = req.body;
       const user = await User.exists({ email });
       if (user) {
         return res.status(409).json({ message: "Email already registered" });
@@ -119,7 +111,6 @@ function authControllers() {
           email,
           password: hashedPassword,
           role,
-          pic,
         });
 
         const isSaved = await newUser.save();
