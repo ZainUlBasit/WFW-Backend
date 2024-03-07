@@ -67,9 +67,6 @@ const CreateCompany = async (req, res) => {
       description,
       address,
       branch,
-      total,
-      paid,
-      remaining,
     }).save();
   } catch (err) {
     console.log(err);
