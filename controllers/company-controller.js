@@ -53,7 +53,7 @@ const CreateCompany = async (req, res) => {
     branch: Joi.string().required(),
   });
 
-  const { error } = companySchema.validate(req.body.values);
+  const { error } = companySchema.validate(req.body);
   if (error) {
     return createError(res, 422, error.message);
   }
