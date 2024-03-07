@@ -38,9 +38,10 @@ const getBranchCompanies = async (req, res, next) => {
   return successMessage(res, companies, null);
 };
 
-const CreateCompany = async (req, res, next) => {
+const CreateCompany = async (req, res) => {
   let company;
   const { name, email, contact, cnic, description, address, branch } = req.body;
+  console.log(req.body);
 
   const companySchema = Joi.object({
     name: Joi.string().required(),

@@ -4,11 +4,11 @@ const User = require("../Models/User");
 const userDto = require("../Services/userDto");
 const JwtService = require("../Services/JwtServices");
 const RefreshModel = require("../Models/RefreshToken");
+const { createError, successMessage } = require("../utils/ResponseMessage");
 
 function authControllers() {
   return {
     login: async (req, res) => {
-      console.log(req.body);
       // validate the req
       const loginSchema = Joi.object({
         email: Joi.string().email().required(),
@@ -16,37 +16,29 @@ function authControllers() {
       });
 
       const { error } = loginSchema.validate(req.body);
-      if (error) {
-        return res.status(422).json({ message: "Hike" });
-      }
+      if (error) return createError(res, 422, error.message);
 
       // check useremail
       const { email, password } = req.body;
       const user = await User.findOne({ email });
-      if (!user) {
-        return res
-          .status(422)
-          .json({ message: "Email or password incorrect1" });
-      }
+      if (!user) return createError(res, 422, "No such email registered!");
 
       // check user password using bcrypt
       const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res
-          .status(403)
-          .json({ message: "Email or password incorrect2" });
-      }
+      if (!isMatch)
+        return createError(res, 403, "email or password doesn't match!");
       const { accessToken, refreshToken } = JwtService.generateToken({
         _id: user._id,
         role: user.role,
       });
 
       const result = await JwtService.storeRefreshToken(refreshToken, user._id);
-      if (!result) {
-        return res.status(500).json({
-          message: "Internal server error.Cannot store refresh token",
-        });
-      }
+      if (!result)
+        return createError(
+          res,
+          500,
+          "Internal server error.Cannot store refresh token"
+        );
 
       // store  access token and refresh token in cookies
       res.cookie("refreshtoken", refreshToken, {
@@ -60,7 +52,7 @@ function authControllers() {
       });
 
       const userdata = userDto(user);
-      return res.json({ userdata });
+      return successMessage(res, userdata, "Successfully Logged In!");
     },
     register: async (req, res) => {
       // validate req using joi
@@ -82,23 +74,14 @@ function authControllers() {
         role: Joi.number().valid(1, 2, 3).required(),
       });
       const { error } = registerSchema.validate(req.body.values);
-      if (error) {
-        return res.status(422).json({ message: error.message });
-      }
+      if (error) return createError(res, 422, error.message);
 
       // check if email has not register yet
       const { name, email, password, confirmPassword, role } = req.body;
       const user = await User.exists({ email });
-      if (user) {
-        return res.status(409).json({ message: "Email already registered" });
-      }
-
-      if (!name || !role || !email || !password || !confirmPassword) {
-        return res.status(422).json({ message: "All fields are required" });
-      }
-      if (password !== confirmPassword) {
-        return res.status(422).json({ message: "Password not matching" });
-      }
+      if (user) return createError(res, 409, "Email already registered");
+      if (password !== confirmPassword)
+        return createError(res, 422, "Password not matching");
 
       let newUser;
       try {
@@ -114,18 +97,16 @@ function authControllers() {
         });
 
         const isSaved = await newUser.save();
-        if (!isSaved) {
-          return res
-            .status(500)
-            .json({ message: "Internal server error.Could not register user" });
-        }
-      } catch (error) {
-        return res
-          .status(500)
-          .json({ message: "Internal server error.Please try again" });
+        if (!isSaved)
+          return createError(
+            res,
+            500,
+            "Internal server error.Could not register user"
+          );
+        return successMessage(res, newUser, `${name} successfully registered!`);
+      } catch (err) {
+        return createError(res, 500, err.message || err);
       }
-
-      return res.status(201).json(newUser);
     },
     logout: async (req, res) => {
       console.log(req.user._id);
@@ -139,9 +120,9 @@ function authControllers() {
         res.clearCookie("accesstoken");
         res.clearCookie("refreshtoken");
       } catch (err) {
-        return res.status(500).json({ message: err.message });
+        return createError(res, 500, err.message || err);
       }
-      return res.json({ message: "Logout successfully" });
+      return successMessage(res, null, "Logout successfully");
     },
     autoLogin: async (req, res) => {
       const { refreshtoken: refreshTokenFromCookies } = req.cookies;
