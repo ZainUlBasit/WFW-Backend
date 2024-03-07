@@ -14,7 +14,7 @@ const addCategory = async (req, res, next) => {
     name: reqStr,
     branch: reqNum,
   });
-  const { error } = categorySchema.validate(req.body.values);
+  const { error } = categorySchema.validate(req.body);
   if (error) return createError(res, 422, error.message);
 
   try {
@@ -47,7 +47,7 @@ const getBranchCategories = async (req, res, next) => {
     branch: Joi.number().required(),
   });
 
-  const { error } = CategorySchema.validate(req.body.values);
+  const { error } = CategorySchema.validate(req.body);
   if (error) return createError(res, 422, error.message);
 
   let categories;
@@ -77,7 +77,7 @@ const updateCategory = async (req, res, next) => {
     payload: Joi.object().min(1).required().keys(categoryPayloadSchema),
   });
   // check if the validation returns error
-  const { error } = CategoryUpdateSchema.validate(req.body.values);
+  const { error } = CategoryUpdateSchema.validate(req.body);
   if (error) return createError(res, 422, error.message);
 
   let category;

@@ -73,7 +73,7 @@ function authControllers() {
         confirmPassword: Joi.ref("password"),
         role: Joi.number().valid(1, 2, 3).required(),
       });
-      const { error } = registerSchema.validate(req.body.values);
+      const { error } = registerSchema.validate(req.body);
       if (error) return createError(res, 422, error.message);
 
       // check if email has not register yet

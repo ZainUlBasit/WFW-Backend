@@ -22,7 +22,7 @@ const getBranchCompanies = async (req, res, next) => {
     branch: Joi.number().required(),
   });
 
-  const { error } = companySchema.validate(req.body.values);
+  const { error } = companySchema.validate(req.body);
   if (error) return createError(res, 422, error.message);
 
   let companies;
@@ -50,7 +50,7 @@ const CreateCompany = async (req, res) => {
     cnic: Joi.string().required(),
     description: Joi.string().required(),
     address: Joi.string().required(),
-    branch: Joi.string().required(),
+    branch: Joi.number().required(),
   });
 
   const { error } = companySchema.validate(req.body);
@@ -59,6 +59,9 @@ const CreateCompany = async (req, res) => {
   }
 
   try {
+    const checkCompany = await Company.exists({ email });
+    if (checkCompany) return createError(res, 409, "Email already registered");
+
     company = await new Company({
       name,
       email,
@@ -98,7 +101,7 @@ const updateCompany = async (req, res, next) => {
     payload: Joi.object().min(1).required().keys(companyPayloadSchema),
   });
   // check if the validation returns error
-  const { error } = CompanyUpdateSchema.validate(req.body.values);
+  const { error } = CompanyUpdateSchema.validate(req.body);
   if (error) {
     return createError(res, 422, error.message);
   }
