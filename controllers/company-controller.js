@@ -41,7 +41,7 @@ const getBranchCompanies = async (req, res, next) => {
 const CreateCompany = async (req, res) => {
   let company;
   const { name, email, contact, cnic, description, address, branch } = req.body;
-  console.log(req.body);
+  console.log(req.user);
 
   const companySchema = Joi.object({
     name: Joi.string().required(),
@@ -82,44 +82,93 @@ const CreateCompany = async (req, res) => {
 };
 
 const updateCompany = async (req, res, next) => {
-  // const companyId = req.params.id;
-  const { companyId, payload } = req.body;
+  const { companyId, payload, branch } = req.body;
+
   // check the payload
   const reqStr = Joi.string().required();
+
+  // Corrected Joi email validation
   const reqNum = Joi.number().required();
-  const companyPayloadSchema = Joi.object({
-    name: reqStr,
-    email: reqStr.email(),
-    contact: reqStr,
-    cnic: reqStr,
-    description: reqStr,
-    address: reqStr,
-    branch: reqNum,
-  });
+
+  const isValidEmail = (email) => {
+    // Basic email validation, you can replace it with a more robust solution
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  if (typeof payload !== "object" || payload === null) {
+    return createError(res, 422, "Payload must be an object.");
+  }
+  if (typeof payload.name !== "string" || payload.name.trim() === "") {
+    return createError(
+      res,
+      422,
+      "Name is required and must be a non-empty string."
+    );
+  }
+  if (typeof payload.email !== "string" || !isValidEmail(payload.email)) {
+    return createError(
+      res,
+      422,
+      "Email is required and must be a valid email address."
+    );
+  }
+  if (typeof payload.contact !== "string" || payload.contact.trim() === "") {
+    return createError(
+      res,
+      422,
+      "Contact is required and must be a non-empty string."
+    );
+  }
+  if (typeof payload.cnic !== "string" || payload.cnic.trim() === "") {
+    return createError(
+      res,
+      422,
+      "CNIC is required and must be a non-empty string."
+    );
+  }
+  if (
+    typeof payload.description !== "string" ||
+    payload.description.trim() === ""
+  ) {
+    return createError(
+      res,
+      422,
+      "Description is required and must be a non-empty string."
+    );
+  }
+  if (typeof payload.address !== "string" || payload.address.trim() === "") {
+    return createError(
+      res,
+      422,
+      "Address is required and must be a non-empty string."
+    );
+  }
+
   const CompanyUpdateSchema = Joi.object({
     companyId: reqStr,
-    payload: Joi.object().min(1).required().keys(companyPayloadSchema),
+    branch: reqNum,
+    payload: Joi.object().required(),
   });
+
+  console.log(companyId);
+
   // check if the validation returns error
   const { error } = CompanyUpdateSchema.validate(req.body);
   if (error) {
     return createError(res, 422, error.message);
   }
-  let company;
+
   try {
-    // find company by id
-    company = await Company.findById(companyId);
-    // if company not found
+    const company = await Company.findOneAndUpdate(
+      { _id: companyId, branch },
+      { $set: payload },
+      { new: true } // Return the updated document
+    );
     if (!company)
       return createError(res, 404, "Company with such id was not found!");
-
-    // Update company properties
-    Object.assign(company, payload);
-    // Save the updated company
-    await company.save();
-    return successMessage(res, company, "Company Successfully Updated!");
+    else return successMessage(res, company, "Company Successfully Updated!");
   } catch (err) {
-    return createError(res, 500, error.message || error);
+    return createError(res, 500, err.message || err);
   }
 };
 

@@ -29,7 +29,11 @@ const PaymentRoutes = require("./routes/payment.routes");
 global.rootDirectory = path.resolve(__dirname);
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://wfw-expert-system.vercel.app"],
+  origin: [
+    "http://localhost:3000",
+    "https://wfw-expert-system.vercel.app",
+    "http://localhost:5175",
+  ],
   credentials: true,
 };
 

@@ -27,10 +27,18 @@ function authControllers() {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch)
         return createError(res, 403, "email or password doesn't match!");
-      const { accessToken, refreshToken } = JwtService.generateToken({
-        _id: user._id,
-        role: user.role,
-      });
+      const jwtBody =
+        user.role === 1
+          ? {
+              _id: user._id,
+              role: user.role,
+            }
+          : user.role === 2 && {
+              _id: user._id,
+              role: user.role,
+              branch: user.branch,
+            };
+      const { accessToken, refreshToken } = JwtService.generateToken(jwtBody);
 
       const result = await JwtService.storeRefreshToken(refreshToken, user._id);
       if (!result)
@@ -55,6 +63,7 @@ function authControllers() {
       return successMessage(res, userdata, "Successfully Logged In!");
     },
     register: async (req, res) => {
+      const { name, email, password, confirmPassword, role, branch } = req.body;
       // validate req using joi
       const registerSchema = Joi.object({
         name: Joi.string().required(),
@@ -72,12 +81,21 @@ function authControllers() {
           }),
         confirmPassword: Joi.ref("password"),
         role: Joi.number().valid(1, 2, 3).required(),
+        branch: Joi.number().valid(1, 2, 3),
       });
       const { error } = registerSchema.validate(req.body);
       if (error) return createError(res, 422, error.message);
+      // if role is branch(2) then check the branch #
+      else if (req.body.role === 2 && !req.body.branch) {
+        return createError(res, 422, "Branch # is required for Role Branch");
+      }
+      // if role is branch(2) then check the branch # exist or not
+      else if (req.body.role === 2 && req.body.branch) {
+        const user = await User.exists({ branch });
+        if (user) return createError(res, 409, "Branch # already registered");
+      }
 
       // check if email has not register yet
-      const { name, email, password, confirmPassword, role } = req.body;
       const user = await User.exists({ email });
       if (user) return createError(res, 409, "Email already registered");
       if (password !== confirmPassword)
@@ -87,15 +105,12 @@ function authControllers() {
       try {
         // hash password
         const hashedPassword = await bcrypt.hash(password, 10);
-
+        const payload =
+          role === 2
+            ? { name, email, password: hashedPassword, role, branch }
+            : role === 2 && { name, email, password: hashedPassword, role };
         // register user
-        newUser = new User({
-          name,
-          email,
-          password: hashedPassword,
-          role,
-        });
-
+        newUser = new User(payload);
         const isSaved = await newUser.save();
         if (!isSaved)
           return createError(
@@ -127,13 +142,13 @@ function authControllers() {
     autoLogin: async (req, res) => {
       const { refreshtoken: refreshTokenFromCookies } = req.cookies;
       if (!refreshTokenFromCookies) {
-        return res.status(401).json({ message: "Token not found" });
+        return createError(res, 401, "Token not found");
       }
       let userData;
       try {
         userData = await JwtService.verifyRefreshToken(refreshTokenFromCookies);
       } catch (error) {
-        return res.status(401).json({ message: "Invalid token" });
+        return createError(res, 401, error.message);
       }
 
       try {
@@ -142,15 +157,15 @@ function authControllers() {
           refreshTokenFromCookies
         );
         if (!token) {
-          return res.status(401).json({ message: "Invalid Token" });
+          return createError(res, 401, "Invalid Token!");
         }
       } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        return createError(res, 401, error.message);
       }
 
       const userExist = await User.findById(userData._id);
       if (!userExist) {
-        return res.status(404).json({ message: "Invalid user" });
+        return createError(res, 404, "Invalid User!");
       }
 
       const { accessToken, refreshToken } = JwtService.generateToken({
@@ -163,7 +178,7 @@ function authControllers() {
           refreshToken
         );
       } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        return createError(res, 500, error.message);
       }
 
       // store  access token and refresh token in cookies
@@ -177,7 +192,7 @@ function authControllers() {
         httpOnly: true,
       });
       const userdata = userDto(userExist);
-      return res.json({ userdata });
+      return successMessage(res, userdata, null);
     },
   };
 }
