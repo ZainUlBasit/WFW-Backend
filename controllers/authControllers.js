@@ -5,6 +5,7 @@ const userDto = require("../Services/userDto");
 const JwtService = require("../Services/JwtServices");
 const RefreshModel = require("../Models/RefreshToken");
 const { createError, successMessage } = require("../utils/ResponseMessage");
+const { isValidObjectId } = require("mongoose");
 
 function authControllers() {
   return {
@@ -36,7 +37,7 @@ function authControllers() {
           : user.role === 2 && {
               _id: user._id,
               role: user.role,
-              branch: user.branch,
+              branch: user.branch_number,
             };
       const { accessToken, refreshToken } = JwtService.generateToken(jwtBody);
 
@@ -59,11 +60,21 @@ function authControllers() {
         httpOnly: true,
       });
 
-      const userdata = userDto(user);
-      return successMessage(res, userdata, "Successfully Logged In!");
+      delete user.password;
+
+      // const userdata = userDto(user);
+      return successMessage(res, user, "Successfully Logged In!");
     },
     register: async (req, res) => {
-      const { name, email, password, confirmPassword, role, branch } = req.body;
+      const {
+        name,
+        email,
+        password,
+        confirmPassword,
+        role,
+        branch_number,
+        imageUrl,
+      } = req.body;
       // validate req using joi
       const registerSchema = Joi.object({
         name: Joi.string().required(),
@@ -81,17 +92,18 @@ function authControllers() {
           }),
         confirmPassword: Joi.ref("password"),
         role: Joi.number().valid(1, 2, 3).required(),
-        branch: Joi.number().valid(1, 2, 3),
+        branch_number: Joi.number().valid(1, 2, 3),
+        imageUrl: Joi.string(),
       });
       const { error } = registerSchema.validate(req.body);
       if (error) return createError(res, 422, error.message);
       // if role is branch(2) then check the branch #
-      else if (req.body.role === 2 && !req.body.branch) {
+      else if (req.body.role === 2 && !req.body.branch_number) {
         return createError(res, 422, "Branch # is required for Role Branch");
       }
       // if role is branch(2) then check the branch # exist or not
-      else if (req.body.role === 2 && req.body.branch) {
-        const user = await User.exists({ branch });
+      else if (req.body.role === 2 && req.body.branch_number) {
+        const user = await User.exists({ branch_number });
         if (user) return createError(res, 409, "Branch # already registered");
       }
 
@@ -106,9 +118,16 @@ function authControllers() {
         // hash password
         const hashedPassword = await bcrypt.hash(password, 10);
         const payload =
-          role === 2
-            ? { name, email, password: hashedPassword, role, branch }
-            : role === 2 && { name, email, password: hashedPassword, role };
+          role === 2 || role === 3
+            ? {
+                name,
+                email,
+                password: hashedPassword,
+                role,
+                branch_number,
+                imageUrl,
+              }
+            : role === 1 && { name, email, password: hashedPassword, role };
         // register user
         newUser = new User(payload);
         const isSaved = await newUser.save();
@@ -121,6 +140,56 @@ function authControllers() {
         return successMessage(res, newUser, `${name} successfully registered!`);
       } catch (err) {
         return createError(res, 500, err.message || err);
+      }
+    },
+    branches: async (req, res) => {
+      try {
+        const branches = await User.find({ role: 2 });
+        if (!branches) return createError(res, 404, "Branches not found!");
+        else return successMessage(res, branches, null);
+      } catch (err) {
+        return createError(res, 400, err.message);
+      }
+    },
+    deleteBranch: async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      if (!id) return createError(res, 422, "Invalid Branch Id!");
+      try {
+        const branch = await User.findByIdAndDelete(id );
+        if (!branch) return createError(res, 404, "Branch not Found!");
+        else
+          return successMessage(
+            res,
+            200,
+            `${branch.name} successfully deleted!`
+          );
+      } catch (err) {
+        return createError(res, 400, err.message);
+      }
+    },
+    updateBranch: async (req, res) => {
+      const { branchId, payload } = req.body;
+      console.log(req.body);
+      if (!branchId) return createError(res, 422, "Invalid Branch Id!");
+      if (!payload) return createError(res, 422, "Invalid Payload!");
+      let hashedPassword;
+
+      if (payload.password) hashedPassword = await bcrypt.hash(payload.password, 10);
+
+      payload.password = hashedPassword;
+
+      try {
+        const branch = await User.findByIdAndUpdate(branchId, payload);
+        if (!branch) return createError(res, 404, "Branch not Found!");
+        else
+          return successMessage(
+            res,
+            200,
+            `${branch.name} successfully updated!`
+          );
+      } catch (err) {
+        return createError(res, 400, err.message);
       }
     },
     logout: async (req, res) => {
@@ -167,10 +236,10 @@ function authControllers() {
       if (!userExist) {
         return createError(res, 404, "Invalid User!");
       }
-
       const { accessToken, refreshToken } = JwtService.generateToken({
         _id: userData._id,
         role: userData.role,
+        branch: userData.branch_number,
       });
       try {
         const result = await JwtService.updateRefreshToken(
@@ -192,7 +261,8 @@ function authControllers() {
         httpOnly: true,
       });
       const userdata = userDto(userExist);
-      return successMessage(res, userdata, null);
+      delete userExist.password;
+      return successMessage(res, userExist, null);
     },
   };
 }

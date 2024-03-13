@@ -17,6 +17,7 @@ const getAllCompanies = async (req, res, next) => {
 };
 const getBranchCompanies = async (req, res, next) => {
   const { branch } = req.body;
+  console.log(req.body);
 
   const companySchema = Joi.object({
     branch: Joi.number().required(),

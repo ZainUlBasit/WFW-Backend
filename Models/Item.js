@@ -20,8 +20,7 @@ const reqDate = {
 const itemSchema = new Schema({
   code: reqStr,
   name: reqStr,
-  company: reqStr,
-  companyId: reqStr,
+  companyId: { type: mongoose.Types.ObjectId, ref: "company" },
   category: reqStr,
   subcategory: reqStr,
   unit: reqStr,

@@ -61,14 +61,14 @@ const addItem = async (req, res, next) => {
   const {
     code,
     name,
-    company,
+    companyId,
     category,
     subcategory,
     unit,
     purchase,
     sale,
     qty,
-    shop,
+    branch,
     addeddate = Math.floor(Date.now() / 1000),
   } = req.body;
 
@@ -78,7 +78,6 @@ const addItem = async (req, res, next) => {
   const itemSchema = Joi.object({
     code: reqStr,
     name: reqStr,
-    company: reqStr,
     companyId: reqStr,
     category: reqStr,
     subcategory: reqStr,
@@ -88,14 +87,14 @@ const addItem = async (req, res, next) => {
     qty: reqNum,
     branch: reqNum,
   });
-  const { error } = itemSchema.validate(req.body.values);
+  const { error } = itemSchema.validate(req.body);
   if (error) return createError(res, 422, error.message);
 
   try {
     item = await new Item({
       code,
       name,
-      company,
+      companyId,
       category,
       subcategory,
       unit,

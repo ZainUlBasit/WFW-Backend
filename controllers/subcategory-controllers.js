@@ -17,14 +17,14 @@ const addManySubCategory = async (req, res, next) => {
 };
 const addSubCategory = async (req, res, next) => {
   let subCategory;
-  const { company_id, categoryname, name, branch } = req.body;
+  const { company_id, category_id, name, branch } = req.body;
 
   const reqStr = Joi.string().required();
   const reqNum = Joi.number().required();
 
   const subCategorySchema = Joi.object({
     company_id: reqStr,
-    categoryname: reqStr,
+    category_id: reqStr,
     name: reqStr,
     branch: reqNum,
   });
@@ -35,7 +35,7 @@ const addSubCategory = async (req, res, next) => {
   try {
     subCategory = await new SubCategory({
       company_id,
-      categoryname,
+      category_id,
       name,
       branch,
     }).save();

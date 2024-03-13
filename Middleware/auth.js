@@ -11,6 +11,7 @@ const VerifyUserCookie = async (req, res, next) => {
     if (!userData) {
       throw new Error("No user found");
     }
+    console.log("userData: ", userData);
     req.user = userData;
     next();
   } catch (error) {
@@ -27,7 +28,6 @@ const VerifyBranch = async (req, res, next) => {
   }
 };
 const VerifyAdmin = async (req, res, next) => {
-  console.log(req.user);
   try {
     if (req.user.role !== 1)
       throw new Error("Unauthorized to access this route!");

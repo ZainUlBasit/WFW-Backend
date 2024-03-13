@@ -3,7 +3,7 @@ const CategoryController = require("../controllers/category-controllers");
 
 router.post("/create", CategoryController.addCategory);
 router.get("/all", CategoryController.getAllCategories);
-router.get("/branch", CategoryController.getBranchCategories);
+router.get("/branch/:id", CategoryController.getBranchCategories);
 router.patch("/update", CategoryController.updateCategory);
 router.delete("/delete", CategoryController.deleteCategory);
 

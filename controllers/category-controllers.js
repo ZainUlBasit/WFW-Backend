@@ -4,7 +4,7 @@ const { createError, successMessage } = require("../utils/ResponseMessage");
 
 const addCategory = async (req, res, next) => {
   let category;
-  const { company_id, name, shop } = req.body;
+  const { company_id, name, branch } = req.body;
 
   const reqStr = Joi.string().required();
   const reqNum = Joi.number().required();
@@ -21,7 +21,7 @@ const addCategory = async (req, res, next) => {
     category = await new Category({
       company_id,
       name,
-      shop,
+      branch,
     }).save();
     if (!category) return createError(res, 400, "Unable to Add Category!");
     return successMessage(res, category, "Category Successfully Added!");
@@ -42,13 +42,9 @@ const getAllCategories = async (req, res, next) => {
   }
 };
 const getBranchCategories = async (req, res, next) => {
-  const { branch } = req.body;
-  const CategorySchema = Joi.object({
-    branch: Joi.number().required(),
-  });
-
-  const { error } = CategorySchema.validate(req.body);
-  if (error) return createError(res, 422, error.message);
+  const branch = req.params.id;
+  console.log("req.body", branch);
+  if (!branch) return createError(res, 422, "Branch is undefined!");
 
   let categories;
   try {
