@@ -21,6 +21,7 @@ const getAllCustomers = async (req, res, next) => {
 };
 const getBranchCustomers = async (req, res, next) => {
   const { branch } = req.body;
+  console.log(req.body);
 
   const CustomerSchema = Joi.object({
     branch: Joi.number().required(),
@@ -31,7 +32,9 @@ const getBranchCustomers = async (req, res, next) => {
 
   let customers;
   try {
-    customers = await Customer.find({ branch });
+    // customers = await Customer.find({ branch });
+    customers = await Customer.find({ branch: branch });
+    console.log("customers:", customers);
     if (!customers) return createError(res, 404, "No Item Found");
     return successMessage(res, customers, null);
   } catch (err) {
@@ -140,8 +143,7 @@ const CheckCustomers = async (req, res, next) => {
 const addCustomer = async (req, res, next) => {
   let customer;
   console.log(req.body);
-  const { name, email, password, contact, cnic, address, branch, ref, page } =
-    req.body;
+  const { name, email, contact, cnic, address, branch, ref, page } = req.body;
 
   // schema validation
   const reqStr = Joi.string().required();
@@ -151,7 +153,6 @@ const addCustomer = async (req, res, next) => {
   const customerSchema = Joi.object({
     name: reqStr,
     email: reqStr,
-    password: reqStr,
     cnic: reqStr,
     contact: reqStr,
     address: reqStr,
@@ -172,7 +173,6 @@ const addCustomer = async (req, res, next) => {
     customer = await new Customer({
       name,
       email,
-      password,
       contact,
       cnic,
       address,

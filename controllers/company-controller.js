@@ -83,7 +83,8 @@ const CreateCompany = async (req, res) => {
 };
 
 const updateCompany = async (req, res, next) => {
-  const { companyId, payload, branch } = req.body;
+  const { companyId, payload } = req.body;
+  console.log(req.body);
 
   // check the payload
   const reqStr = Joi.string().required();
@@ -147,11 +148,8 @@ const updateCompany = async (req, res, next) => {
 
   const CompanyUpdateSchema = Joi.object({
     companyId: reqStr,
-    branch: reqNum,
     payload: Joi.object().required(),
   });
-
-  console.log(companyId);
 
   // check if the validation returns error
   const { error } = CompanyUpdateSchema.validate(req.body);
@@ -174,10 +172,10 @@ const updateCompany = async (req, res, next) => {
 };
 
 const deleteCompany = async (req, res, next) => {
-  const { companyId } = req.body;
+  const { id: companyId } = req.params;
   if (!companyId) return createError(res, 422, "Invalid Company Id!");
   try {
-    const delCompany = await Company.findByIdAndDelete(companyId);
+    const delCompany = await Company.findOneAndDelete({ _id: companyId });
     if (!delCompany)
       return createError(
         res,
@@ -198,7 +196,7 @@ const deleteCompany = async (req, res, next) => {
 
 const updateCompanyTotal = async (req, res, next) => {
   const companyid = req.params.id;
-  const { ctotal } = req.body;
+  const { total } = req.body;
   let companyy;
   try {
     const filter = { _id: companyid };

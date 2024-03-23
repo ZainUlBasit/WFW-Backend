@@ -61,29 +61,32 @@ const getBranchCategories = async (req, res, next) => {
 // working
 //******************************************************
 const updateCategory = async (req, res, next) => {
-  const { categoryId, payload } = req.body;
+  const { categoryId, newName } = req.body;
   const reqStr = Joi.string().required();
-  const reqNum = Joi.number().required();
-  const categoryPayloadSchema = Joi.object({
-    name: reqStr,
-    branch: reqNum,
-  });
+
   const CategoryUpdateSchema = Joi.object({
     categoryId: reqStr,
-    payload: Joi.object().min(1).required().keys(categoryPayloadSchema),
+    newName: reqStr,
   });
   // check if the validation returns error
   const { error } = CategoryUpdateSchema.validate(req.body);
   if (error) return createError(res, 422, error.message);
 
-  let category;
   try {
-    category = await Category.findById(categoryId);
-    if (!category)
-      return createError(res, 404, "Category with such id was not found!");
-    Object.assign(category, payload);
+    const category = await Category.findByIdAndUpdate(
+      categoryId,
+      {
+        name: newName,
+      },
+      {
+        new: true,
+      }
+    );
 
-    await category.save();
+    if (!category) {
+      return createError(res, 404, "Category with such id was not found!");
+    }
+
     return successMessage(res, category, "Category Successfully Updated!");
   } catch (err) {
     return createError(res, 500, error.message || error);

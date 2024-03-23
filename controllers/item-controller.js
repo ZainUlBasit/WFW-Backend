@@ -20,17 +20,22 @@ const getAllItems = async (req, res, next) => {
 
 const getBranchItems = async (req, res, next) => {
   const { branch } = req.body;
+  console.log(branch);
 
   const itemSchema = Joi.object({
     branch: Joi.number().required(),
   });
-  
+
   const { error } = itemSchema.validate(req.body.values);
   if (error) return createError(res, 422, error.message);
 
   let items;
   try {
-    items = await Item.find({ branch });
+    items = await Item.find({ branch })
+      .populate("companyId")
+      .populate("categoryId")
+      .populate("subcategoryId");
+    console.log(items);
     if (!items)
       return createError(res, 404, "Items record not found for branch!");
     return successMessage(res, items, null);
@@ -62,8 +67,8 @@ const addItem = async (req, res, next) => {
     code,
     name,
     companyId,
-    category,
-    subcategory,
+    categoryId,
+    subcategoryId,
     unit,
     purchase,
     sale,
@@ -79,8 +84,8 @@ const addItem = async (req, res, next) => {
     code: reqStr,
     name: reqStr,
     companyId: reqStr,
-    category: reqStr,
-    subcategory: reqStr,
+    categoryId: reqStr,
+    subcategoryId: reqStr,
     unit: reqStr,
     purchase: reqNum,
     sale: reqNum,
@@ -95,8 +100,8 @@ const addItem = async (req, res, next) => {
       code,
       name,
       companyId,
-      category,
-      subcategory,
+      categoryId,
+      subcategoryId,
       unit,
       purchase,
       sale,
@@ -116,30 +121,29 @@ const addItem = async (req, res, next) => {
 const updateItem = async (req, res, next) => {
   const { itemId, payload } = req.body;
   // check the payload
-  const reqStr = Joi.string().required();
-  const reqNum = Joi.number().required();
+  const Str = Joi.string();
+  const Num = Joi.number();
 
   const companyPayloadSchema = Joi.object({
-    code: reqStr,
-    name: reqStr,
-    company: reqStr,
-    companyId: reqStr,
-    category: reqStr,
-    subcategory: reqStr,
-    unit: reqStr,
-    purchase: reqNum,
-    sale: reqNum,
-    qty: reqNum,
-    branch: reqNum,
+    code: Str,
+    name: Str,
+    company: Str,
+    companyId: Str,
+    categoryId: Str,
+    subcategoryId: Str,
+    unit: Str,
+    purchase: Num,
+    sale: Num,
+    qty: Num,
   });
-  const CompanyUpdateSchema = Joi.object({
-    itemId: reqStr,
-    payload: Joi.object().min(1).required().keys(companyPayloadSchema),
-  });
+
+  if (!itemId) return createError(res, 422, "Invalid ItemId!");
+
   // check if the validation returns error
-  const { error } = CompanyUpdateSchema.validate(req.body.values);
-  if (error) {
-    return createError(res, 422, error.message);
+  let { error: payloadError } = companyPayloadSchema.validate(req.body.payload);
+
+  if (payloadError) {
+    return createError(res, 422, payloadError.message);
   }
   let item;
   try {
@@ -184,10 +188,10 @@ const updateItemQty = async (req, res, next) => {
 // working
 //******************************************************
 const deleteItem = async (req, res, next) => {
-  const { itemId } = req.body;
+  const { id: itemId } = req.params;
   if (!itemId) return createError(res, 422, "Invalid Item Id!");
   try {
-    const DeleteItem = await Company.findByIdAndDelete(itemId);
+    const DeleteItem = await Item.findByIdAndDelete(itemId);
     if (!DeleteItem)
       return createError(res, 400, "Such Item with itemId does not exist!");
     return successMessage(

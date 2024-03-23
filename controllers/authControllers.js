@@ -156,7 +156,7 @@ function authControllers() {
       console.log(id);
       if (!id) return createError(res, 422, "Invalid Branch Id!");
       try {
-        const branch = await User.findByIdAndDelete(id );
+        const branch = await User.findByIdAndDelete(id);
         if (!branch) return createError(res, 404, "Branch not Found!");
         else
           return successMessage(
@@ -175,7 +175,8 @@ function authControllers() {
       if (!payload) return createError(res, 422, "Invalid Payload!");
       let hashedPassword;
 
-      if (payload.password) hashedPassword = await bcrypt.hash(payload.password, 10);
+      if (payload.password)
+        hashedPassword = await bcrypt.hash(payload.password, 10);
 
       payload.password = hashedPassword;
 
@@ -220,11 +221,14 @@ function authControllers() {
         return createError(res, 401, error.message);
       }
 
+      console.log("userData: ", userData);
+
       try {
         const token = await JwtService.findRefreshToken(
           userData._id,
           refreshTokenFromCookies
         );
+        console.log(token);
         if (!token) {
           return createError(res, 401, "Invalid Token!");
         }

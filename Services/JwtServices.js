@@ -5,11 +5,13 @@ const refresh = process.env.REFRESH_SECRET_KEY;
 
 class JwtService {
   static generateToken(payload) {
+    const lifetimeExpiration =
+      Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60; // 1 year from now
     const accessToken = jwt.sign(payload, access, {
-      expiresIn: "1h",
+      expiresIn: lifetimeExpiration,
     });
     const refreshToken = jwt.sign(payload, refresh, {
-      expiresIn: "24h",
+      expiresIn: lifetimeExpiration,
     });
 
     return { accessToken, refreshToken };
@@ -38,15 +40,17 @@ class JwtService {
   }
 
   static async findRefreshToken(userId, refreshtoken) {
-    return await RefreshModel.findOne({
-      userId: userId,
+    const response = await RefreshModel.findOne({
+      user_id: userId,
       token: refreshtoken,
     });
+    console.log("response: ", response);
+    return response;
   }
 
   static async updateRefreshToken(userId, refreshToken) {
     return await RefreshModel.updateOne(
-      { userId: userId },
+      { user_id: userId },
       { token: refreshToken }
     );
   }

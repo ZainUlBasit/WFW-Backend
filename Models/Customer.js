@@ -14,14 +14,14 @@ const reqStr = {
   required: true,
 };
 const reqNum = {
-  type: String,
+  type: Number,
   required: true,
 };
 
 const CustomerSchema = new Schema({
   name: reqStr,
   email: reqStr,
-  password: reqStr,
+  // password: reqStr,
   cnic: reqStr,
   contact: reqStr,
   address: reqStr,
@@ -33,6 +33,7 @@ const CustomerSchema = new Schema({
   paid: { type: Number, default: 0, required: true },
   remaining: { type: Number, default: 0, required: true },
   total: { type: Number, default: 0, required: true },
+  date: { type: Number, default: Math.floor(Date.now() / 1000) },
 });
 
 module.exports = mongoose.model("Customer", CustomerSchema);

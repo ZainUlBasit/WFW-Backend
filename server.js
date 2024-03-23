@@ -22,6 +22,9 @@ const SalesRoutes = require("./routes/sale.routes");
 const SalesReturnRoutes = require("./routes/sale-return.routes");
 const ReportRoutes = require("./routes/report.routes");
 const PaymentRoutes = require("./routes/payment.routes");
+const StockRoutes = require("./routes/stock-routes");
+const TransactionkRoutes = require("./routes/transaction-route");
+
 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 // End Import all Routes
 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -32,6 +35,8 @@ const corsOptions = {
   origin: [
     "http://localhost:3000",
     "https://wfw-expert-system.vercel.app",
+    "https://www.irshadcartondealer.com",
+    "http://localhost:5174",
     "http://localhost:5173",
   ],
   credentials: true,
@@ -61,12 +66,13 @@ app.use("/api/company", CompanyRoutes);
 app.use("/api/item", ItemRoutes);
 app.use("/api/category", CategoryRoutes);
 app.use("/api/sub-category", SubCategoryRoutes);
-app.use("/api/sub-category", CustomerRoutes);
 app.use("/api/customer", CustomerRoutes);
-app.use("/api/sale", SalesRoutes);
+// app.use("/api/sale", SalesRoutes);
 app.use("/api/sale-return", SalesReturnRoutes);
 app.use("/api/report", ReportRoutes);
 app.use("/api/payment", PaymentRoutes);
+app.use("/api/stock", StockRoutes);
+app.use("/api/transaction", TransactionkRoutes);
 
 server.listen(port, () => {
   console.log(`Listening to port ${port}`);

@@ -1,20 +1,9 @@
 const Joi = require("joi");
 const SubCategory = require("../Models/SubCategory");
 const { createError, successMessage } = require("../utils/ResponseMessage");
+const Category = require("../Models/Category");
+const Company = require("../Models/Company");
 
-const addManySubCategory = async (req, res, next) => {
-  let subCategory;
-  const { data } = req.body;
-  try {
-    subCategory = await SubCategory.insertMany(data);
-  } catch (err) {
-    console.log(err);
-  }
-  if (!subCategory) {
-    return res.status(500).json({ message: "Unable to add sub category" });
-  }
-  return res.status(201).json({ subCategory });
-};
 const addSubCategory = async (req, res, next) => {
   let subCategory;
   const { company_id, category_id, name, branch } = req.body;
@@ -80,36 +69,51 @@ const getBranchSubCategories = async (req, res, next) => {
     return createError(res, 500, err.message || err);
   }
 };
-const getSubCategoriesByCompany = async (req, res, next) => {
-  let subCategories;
-  const company = req.params.company;
-  try {
-    subCategories = await SubCategory.find({ categorycompany: company });
-  } catch (err) {
-    console.log(err);
-  }
 
-  if (!subCategories) {
-    return res.status(404).json({ message: "No Sub Category found..." });
-  }
-  return res.status(200).json(subCategories);
-};
-const updateSubCategory = async (req, res, next) => {
-  const { subcategoryId, payload } = req.body;
+const GetTriForEdit = async (req, res, next) => {
+  const { branch } = req.body;
 
-  const reqStr = Joi.string().required();
   const reqNum = Joi.number().required();
-  const subCategoryPayloadSchema = Joi.object({
-    categoryname: reqStr,
-    name: reqStr,
+  const subCategorySchema = Joi.object({
     branch: reqNum,
   });
+  const { error } = subCategorySchema.validate(req.body.values);
+  if (error) return createError(res, 422, error.message);
+  try {
+    const subCategories = await SubCategory.find({ branch });
+    if (!subCategories)
+      return createError(res, 404, "No SubCategory record found!");
+    const categories = await Category.find({ branch });
+    if (!categories) return createError(res, 404, "No Category record found!");
+    const companies = await Company.find({ branch });
+    if (!companies) return createError(res, 404, "No Company record found!");
+
+    return successMessage(
+      res,
+      {
+        company: companies,
+        category: categories,
+        subcategory: subCategories,
+      },
+      null
+    );
+  } catch (err) {
+    console.log(err);
+    return createError(res, 500, err.message || err);
+  }
+};
+
+const updateSubCategory = async (req, res, next) => {
+  const { subcategoryId, new_name } = req.body;
+
+  const reqStr = Joi.string().required();
+
   const SubCategoryUpdateSchema = Joi.object({
     subcategoryId: reqStr,
-    payload: Joi.object().min(1).required().keys(subCategoryPayloadSchema),
+    new_name: reqStr,
   });
   // check if the validation returns error
-  const { error } = SubCategoryUpdateSchema.validate(req.body.values);
+  const { error } = SubCategoryUpdateSchema.validate(req.body);
   if (error) return createError(res, 422, error.message);
 
   let subCategory;
@@ -117,7 +121,9 @@ const updateSubCategory = async (req, res, next) => {
     subCategory = await SubCategory.findById(subcategoryId);
     if (!subCategory)
       return createError(res, 404, "SubCategory with such id was not found!");
-    Object.assign(subCategory, payload);
+    Object.assign(subCategory, {
+      name: new_name,
+    });
 
     await subCategory.save();
     return successMessage(
@@ -126,19 +132,20 @@ const updateSubCategory = async (req, res, next) => {
       "SubCategory Successfully Updated!"
     );
   } catch (err) {
-    return createError(res, 500, error.message || error);
+    return createError(res, 500, err.message || err);
   }
 };
 const deleteSubCategory = async (req, res, next) => {
-  const { subcategoryId } = req.body;
+  const { id: subcategoryId } = req.params;
+
   if (!subcategoryId) return createError(res, 422, "Invalid subcategoryId");
   try {
-    const delCat = await Category.findByIdAndDelete(subcategoryId);
+    const delCat = await SubCategory.findByIdAndDelete(subcategoryId);
     if (!delCat)
       return createError(
         res,
         400,
-        "Such SubCategory with subcategoryId does not exist!"
+        `Such SubCategory with ${subcategoryId} does not exist!`
       );
     else
       return successMessage(
@@ -152,11 +159,10 @@ const deleteSubCategory = async (req, res, next) => {
 };
 
 module.exports = {
-  getBranchSubCategories,
   addSubCategory,
-  addManySubCategory,
+  getBranchSubCategories,
   getAllSubCategories,
-  getSubCategoriesByCompany,
   updateSubCategory,
   deleteSubCategory,
+  GetTriForEdit,
 };

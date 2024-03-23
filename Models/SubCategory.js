@@ -13,7 +13,6 @@ const reqNum = {
 const SubCategorySchema = new Schema({
   company_id: reqStr,
   category_id: reqStr,
-  categoryname: reqStr,
   name: reqStr,
   branch: reqNum,
 });
