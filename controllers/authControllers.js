@@ -3,9 +3,12 @@ const bcrypt = require("bcrypt");
 const User = require("../Models/User");
 const userDto = require("../Services/userDto");
 const JwtService = require("../Services/JwtServices");
+const jwt = require("jsonwebtoken");
 const RefreshModel = require("../Models/RefreshToken");
 const { createError, successMessage } = require("../utils/ResponseMessage");
 const { isValidObjectId } = require("mongoose");
+const RefreshToken = require("../Models/RefreshToken");
+const privateKey = process.env.ACCESS_SECRET_KEY;
 
 function authControllers() {
   return {
@@ -39,31 +42,44 @@ function authControllers() {
               role: user.role,
               branch: user.branch_number,
             };
-      const { accessToken, refreshToken } = JwtService.generateToken(jwtBody);
+      // const { accessToken, refreshToken } = JwtService.generateToken(jwtBody);
 
-      const result = await JwtService.storeRefreshToken(refreshToken, user._id);
-      if (!result)
-        return createError(
-          res,
-          500,
-          "Internal server error.Cannot store refresh token"
-        );
+      var token = await jwt.sign({ ...jwtBody }, privateKey);
+
+      res.cookie("userToken", token, {
+        // maxAge: 60000000,
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
+
+      // const result = await JwtService.storeRefreshToken(refreshToken, user._id);
+      // if (!result)
+      //   return createError(
+      //     res,
+      //     500,
+      //     "Internal server error.Cannot store refresh token"
+      //   );
 
       // store  access token and refresh token in cookies
-      res.cookie("refreshtoken", refreshToken, {
-        maxAge: 1000 * 60 * 60 * 24 * 30, //2 hour
-        httpOnly: true,
-      });
+      // res.cookie("refreshtoken", refreshToken, {
+      //   maxAge: 1000 * 60 * 60 * 24 * 30, //2 hour
+      //   httpOnly: true,
+      // });
 
-      res.cookie("accesstoken", accessToken, {
-        maxAge: 1000 * 60 * 60, // 1 hour
-        httpOnly: true,
-      });
+      // res.cookie("accesstoken", accessToken, {
+      //   maxAge: 1000 * 60 * 60, // 1 hour
+      //   httpOnly: true,
+      // });
 
       delete user.password;
 
       // const userdata = userDto(user);
-      return successMessage(res, user, "Successfully Logged In!");
+      return successMessage(
+        res,
+        { ...user, token: token },
+        "Successfully Logged In!"
+      );
     },
     register: async (req, res) => {
       const {
