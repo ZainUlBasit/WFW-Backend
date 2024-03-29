@@ -73,7 +73,6 @@ const CreateTransaction = async (req, res, next) => {
 };
 
 const GetTransactions = async (req, res) => {
-  console.log(req.body);
   try {
     const {
       from = 0,
@@ -89,12 +88,6 @@ const GetTransactions = async (req, res) => {
     const fromDateInSeconds = Math.floor(new Date(from) / 1000);
     const toDateInSeconds = Math.floor(new Date(to) / 1000);
 
-    console.log({
-      customerId: customerId,
-      fromDateInSeconds,
-      toDateInSeconds,
-    });
-
     // Retrieve transactions for the given customer within the specified date range
     const transactions = await Transaction.find({
       customerId,
@@ -103,14 +96,29 @@ const GetTransactions = async (req, res) => {
       .populate("customerId")
       .populate({
         path: "items",
-        populate: { path: "itemId" }, // Populate the 'itemId' field within 'items'
+        populate: { path: "itemId" }, // Populate the itemId field inside the items array
       });
 
-    console.log("Transactions:", transactions); // Debug: Print retrieved transactions
+    const UpdatedTransactions = transactions
+      .map((data) => {
+        const itemsData = data.items.map((dt) => {
+          return {
+            date: data.date,
+            invoice_no: data.invoice_no,
+            name: dt.itemId.name,
+            qty: dt.qty,
+            purchase: dt.purchase,
+            price: dt.price,
+            amount: dt.amount,
+          };
+        });
+        return itemsData;
+      })
+      .flat();
 
     return successMessage(
       res,
-      transactions,
+      UpdatedTransactions,
       "Transactions retrieved successfully!"
     );
   } catch (err) {

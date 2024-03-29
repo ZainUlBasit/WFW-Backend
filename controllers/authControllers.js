@@ -77,7 +77,7 @@ function authControllers() {
       // const userdata = userDto(user);
       return successMessage(
         res,
-        { ...user, token: token },
+        { user: user, token: token },
         "Successfully Logged In!"
       );
     },

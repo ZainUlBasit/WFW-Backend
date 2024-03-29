@@ -110,10 +110,30 @@ const GetStockByBranch = async (req, res) => {
       .populate("itemId")
       .populate("companyId");
 
-    console.log("Branch:", StockStats);
     if (!StockStats)
       return createError(res, 404, `No record found of Branch ${branch}!`);
-    return successMessage(res, StockStats, null);
+    const UpdateStockStats = StockStats.map((dat) => {
+      return {
+        name: dat.itemId.name,
+        qty: dat.qty,
+        purchase: dat.purchase,
+        total_amount: dat.total_amount,
+        invoice_no: dat.invoice_no,
+        truck_no: dat.truck_no,
+        date: dat.date,
+        desc: dat.desc,
+        branch: dat.branch,
+        // qty(pin):10
+        // purchase(pin):1000
+        // total_amount(pin):10000
+        // invoice_no(pin):"Inv123"
+        // truck_no(pin):"tr123"
+        // branch(pin):1
+        // date(pin):1710633600
+        // desc(pin):"Cartons"
+      };
+    });
+    return successMessage(res, UpdateStockStats, null);
   } catch (err) {
     console.log("Error while getting Stock Stats: ", err);
     return createError(res, 500, err.message || err);

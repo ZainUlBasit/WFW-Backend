@@ -8,6 +8,7 @@ const addPayment = async (req, res, next) => {
   const {
     user_type,
     user_Id,
+    user_name,
     depositor,
     payment_type,
     bank_name,
@@ -24,6 +25,7 @@ const addPayment = async (req, res, next) => {
   const paymentSchema = Joi.object({
     user_type: Joi.number().valid(1, 2).required(),
     user_Id: reqStr,
+    user_name: reqStr,
     depositor: reqStr,
     payment_type: Joi.number().valid(1, 2).required(),
     bank_name: reqStr.allow(null), // Allow null for Cash payments
@@ -43,6 +45,7 @@ const addPayment = async (req, res, next) => {
     const newPayment = await new Payment({
       user_type,
       user_Id,
+      user_name,
       depositor,
       payment_type,
       bank_name,
@@ -53,13 +56,10 @@ const addPayment = async (req, res, next) => {
       branch,
     }).save();
 
-    if (!newPayment) {
-      return createError(res, 400, "Unable to add new Payment!");
-    }
-
-    return successMessage(res, newPayment, "Payment Successfully Created!");
+    if (!newPayment) return createError(res, 400, "Unable to add new Payment!");
+    else return successMessage(res, newPayment, "Payment Successfully Added!");
   } catch (err) {
-    return createError(res, 500, err.message || err);
+    return createError(res, 500, err.message || "Internal Server Error!");
   }
 };
 
