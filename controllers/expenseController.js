@@ -137,26 +137,24 @@ const SaleDetail = async (req, res) => {
     const listOfItem = transactions.map((data) => {
       return data.items.map((item) => {
         return {
-          currentSale: item.price,
-          currentPurchases: item.purchase,
+          currentSale: item.price * item.qty,
+          currentPurchases: item.purchase * item.qty,
           currentQty: item.qty,
         };
       });
     });
-
-    console.log(listOfItem);
 
     // Flatten the array of arrays into a single array
     const flattenedList = listOfItem.flat();
 
     // Calculate the total sales
     const totalSales = flattenedList.reduce((total, item) => {
-      return total + item.currentSale * item.currentQty;
+      return total + item.currentSale;
     }, 0);
 
     // Calculate the total purhchases
     const totalPurchases = flattenedList.reduce((total, item) => {
-      return total + item.currentPurchases * item.currentQty;
+      return total + item.currentPurchases;
     }, 0);
 
     // Calculate the total qty
