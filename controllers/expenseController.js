@@ -181,8 +181,6 @@ const SaleDetail = async (req, res) => {
     return successMessage(
       res,
       {
-        // test: transactions,
-        listOfItem: flattenedList,
         branch: branch,
         totalSale: totalSales,
         totalPurchases: totalPurchases,
