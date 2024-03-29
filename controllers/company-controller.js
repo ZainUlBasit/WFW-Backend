@@ -148,6 +148,7 @@ const updateCompany = async (req, res, next) => {
 
   const CompanyUpdateSchema = Joi.object({
     companyId: reqStr,
+    branch: reqNum,
     payload: Joi.object().required(),
   });
 
