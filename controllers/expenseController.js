@@ -144,6 +144,10 @@ const SaleDetail = async (req, res) => {
       });
     });
 
+    // =========================
+    console.log(listOfItem);
+    // =========================
+
     // Flatten the array of arrays into a single array
     const flattenedList = listOfItem.flat();
 
