@@ -135,14 +135,13 @@ const SaleDetail = async (req, res) => {
     console.log("++++++++++++++++++++++++++++++++++++++++++++++");
 
     const listOfItem = transactions.map((data) => {
-      const updateData = data.items.map((item) => {
+      return data.items.map((item) => {
         return {
           currentSale: item.price * item.qty,
           currentPurchases: item.purchase * item.qty,
           currentQty: item.qty,
         };
       });
-      return updateData.flat();
     });
 
     // =========================
@@ -182,8 +181,8 @@ const SaleDetail = async (req, res) => {
     return successMessage(
       res,
       {
-        test: transactions,
-        listOfItem: listOfItem,
+        // test: transactions,
+        listOfItem: flattenedList,
         branch: branch,
         totalSale: totalSales,
         totalPurchases: totalPurchases,
