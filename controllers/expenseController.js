@@ -135,13 +135,14 @@ const SaleDetail = async (req, res) => {
     console.log("++++++++++++++++++++++++++++++++++++++++++++++");
 
     const listOfItem = transactions.map((data) => {
-      return data.items.map((item) => {
+      const updateData = data.items.map((item) => {
         return {
           currentSale: item.price * item.qty,
           currentPurchases: item.purchase * item.qty,
           currentQty: item.qty,
         };
       });
+      return updateData.flat();
     });
 
     // =========================
