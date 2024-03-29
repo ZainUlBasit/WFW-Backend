@@ -137,8 +137,8 @@ const SaleDetail = async (req, res) => {
     const listOfItem = transactions.map((data) => {
       return data.items.map((item) => {
         return {
-          currentSale: item.price * item.qty,
-          currentPurchases: item.purchase * item.qty,
+          currentSale: item.price,
+          currentPurchases: item.purchase,
           currentQty: item.qty,
         };
       });
@@ -182,6 +182,7 @@ const SaleDetail = async (req, res) => {
       res,
       {
         test: transactions,
+        listOfItem: listOfItem,
         branch: branch,
         totalSale: totalSales,
         totalPurchases: totalPurchases,
