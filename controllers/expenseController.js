@@ -181,6 +181,7 @@ const SaleDetail = async (req, res) => {
     return successMessage(
       res,
       {
+        test: transactions,
         branch: branch,
         totalSale: totalSales,
         totalPurchases: totalPurchases,
