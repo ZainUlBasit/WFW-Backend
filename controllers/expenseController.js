@@ -149,12 +149,12 @@ const SaleDetail = async (req, res) => {
 
     // Calculate the total sales
     const totalSales = flattenedList.reduce((total, item) => {
-      return total + item.currentSale;
+      return total + item.currentSale * item.currentQty;
     }, 0);
 
     // Calculate the total purhchases
     const totalPurchases = flattenedList.reduce((total, item) => {
-      return total + item.currentPurchases;
+      return total + item.currentPurchases * item.currentQty;
     }, 0);
 
     // Calculate the total qty
