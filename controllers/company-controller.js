@@ -83,7 +83,7 @@ const CreateCompany = async (req, res) => {
 };
 
 const updateCompany = async (req, res, next) => {
-  const { companyId, payload } = req.body;
+  const { companyId, payload, branch } = req.body;
   console.log(req.body);
 
   // check the payload
