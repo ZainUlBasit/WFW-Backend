@@ -44,7 +44,7 @@ const addPayment = async (req, res, next) => {
   }
 
   try {
-    if (user_type === 2) {
+    if (user_type === 2 || user_type === "2") {
       const updateCustomerAccount = await Customer.findByIdAndUpdate(
         user_Id,
         { $inc: { paid: amount, remaining: amount * -1 } }, // Decrement qty field by decrementQty
@@ -53,7 +53,7 @@ const addPayment = async (req, res, next) => {
 
       if (!updateCustomerAccount)
         return createError(res, 400, "Unable to update customer accounts!");
-    } else if (user_type === 1) {
+    } else if (user_type === 1 || user_type === "1") {
       const updateValue = {
         $inc: { paid: amount, remaining: amount * -1 },
       };
