@@ -3,6 +3,8 @@ const Joi = require("joi");
 const { createError, successMessage } = require("../utils/ResponseMessage");
 const { isValidObjectId } = require("mongoose");
 const Payment = require("../Models/Payment");
+const Customer = require("../Models/Customer");
+const Company = require("../Models/Company");
 
 const addPayment = async (req, res, next) => {
   const {
@@ -42,6 +44,28 @@ const addPayment = async (req, res, next) => {
   }
 
   try {
+    if (user_type === 2) {
+      const updateCustomerAccount = await Customer.findByIdAndUpdate(
+        user_Id,
+        { $inc: { paid: amount, remaining: amount * -1 } }, // Decrement qty field by decrementQty
+        { new: true }
+      );
+
+      if (!updateCustomerAccount)
+        return createError(res, 400, "Unable to update customer accounts!");
+    } else if (user_type === 1) {
+      const updateValue = {
+        $inc: { paid: amount, remaining: amount * -1 },
+      };
+      const updatedCompany = await Company.findByIdAndUpdate(
+        user_Id,
+        updateValue,
+        { new: true }
+      );
+      if (!updatedCompany)
+        return createError(res, 400, "Unable to update company accounts!");
+    }
+
     const newPayment = await new Payment({
       user_type,
       user_Id,
