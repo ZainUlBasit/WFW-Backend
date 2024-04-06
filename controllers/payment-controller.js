@@ -101,22 +101,35 @@ const getAllPayments = async (req, res, next) => {
 };
 
 const getBranchPayments = async (req, res, next) => {
-  const { branch } = req.body;
+  const {
+    branch,
+    user_Id,
+    startDate = 0,
+    endDate = Math.floor(Date.now() / 1000),
+  } = req.body;
 
-  // Validate branch input
-  const paymentSchema = Joi.object({
-    branch: Joi.number().required(),
-  });
+  // // Validate branch input
+  // const paymentSchema = Joi.object({
+  //   branch: Joi.number().required(),
+  // });
 
-  // Check if the validation returns an error
-  const { error } = paymentSchema.validate(req.body.values);
-  if (error) {
-    return createError(res, 422, error.message);
-  }
+  // // Check if the validation returns an error
+  // const { error } = paymentSchema.validate(req.body.values);
+  // if (error) {
+  //   return createError(res, 422, error.message);
+  // }
 
   let branchPayments;
   try {
-    branchPayments = await Payment.find({ branch });
+    branchPayments = await Payment.find({
+      user_Id,
+      branch,
+      date: {
+        $gte: Math.floor(new Date(startDate) / 1000),
+        $lte: Math.floor(new Date(endDate) / 1000),
+      },
+    });
+    console.log(branchPayments);
 
     if (!branchPayments) {
       return createError(res, 404, "Payments record not found for branch!");
