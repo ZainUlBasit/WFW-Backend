@@ -127,7 +127,24 @@ const GetTransactions = async (req, res) => {
   }
 };
 
+const GetItemSummary = async (req, res) => {
+  const { customerId } = req.body;
+
+  if (!customerId) return createError(res, 422, "Invalid Customer ID!");
+
+  try {
+    let response = await Transaction.find({ customerId }).populate({
+      path: "items",
+      populate: { path: "itemId" }, // Populate the itemId field inside the items array
+    });
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 module.exports = {
   CreateTransaction,
   GetTransactions,
+  GetItemSummary,
 };

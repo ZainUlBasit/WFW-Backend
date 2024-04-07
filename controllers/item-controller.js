@@ -101,7 +101,7 @@ const addItem = async (req, res, next) => {
       name,
       companyId,
       categoryId,
-      subcategoryId,
+      subcategoryId: subcategoryId,
       unit,
       purchase,
       sale,
