@@ -130,16 +130,61 @@ const GetTransactions = async (req, res) => {
 const GetItemSummary = async (req, res) => {
   const { customerId } = req.body;
 
-  if (!customerId) return createError(res, 422, "Invalid Customer ID!");
+  if (!customerId) {
+    return createError(res, 422, "Invalid Customer ID!");
+  }
 
   try {
-    let response = await Transaction.find({ customerId }).populate({
-      path: "items",
-      populate: { path: "itemId" }, // Populate the itemId field inside the items array
+    const transactions = await Transaction.find({ customerId })
+      .populate("customerId")
+      .populate({
+        path: "items",
+        populate: { path: "itemId" }, // Populate the itemId field inside the items array
+      });
+
+    const arrayOfItems = transactions.flatMap((dt) => dt.items);
+
+    const newArray = arrayOfItems.map((dt) => {
+      // If item doesn't have code property, return a new object with necessary properties
+      return {
+        code: dt.itemId.code,
+        name: dt.itemId.name,
+        price: dt.itemId.sale,
+        qty: dt.qty,
+      };
     });
-    console.log(response);
+
+    const copyNewArray = [...newArray];
+
+    const updatedArray = [];
+    newArray.map((dt) => {
+      let currentIndex = -1;
+      const exists = updatedArray.some((item, index) => {
+        if (item.code === dt.code) {
+          currentIndex = index;
+          return true;
+        } else false;
+      });
+      if (exists) {
+        let temp = updatedArray[currentIndex];
+        temp = {
+          ...temp,
+          qty: temp.qty + dt.qty,
+        };
+        updatedArray[currentIndex] = temp;
+      } else {
+        updatedArray.push(dt);
+      }
+    });
+
+    return successMessage(
+      res,
+      updatedArray,
+      "Transactions retrieved successfully!"
+    );
   } catch (err) {
-    console.log(err);
+    console.error("Error occurred while fetching transactions:", err);
+    return createError(res, 500, err.message || "Internal Server Error");
   }
 };
 
