@@ -62,12 +62,6 @@ mongoose
     console.log(err);
   });
 
-const router = require("express").Router();
-router.post("/api");
-
-app.use("/api", async (req, res) => {
-  return successMessage(res, 200, "Hike");
-});
 app.use("/api/auth", AuthRoutes);
 app.use("/api/company", CompanyRoutes);
 app.use("/api/item", ItemRoutes);
