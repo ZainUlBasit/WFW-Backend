@@ -33,11 +33,11 @@ global.rootDirectory = path.resolve(__dirname);
 
 const corsOptions = {
   origin: [
-    "http://localhost:3000",
-    "https://wfw-expert-system.vercel.app",
+    // "http://localhost:3000",
+    // "https://wfw-expert-system.vercel.app",
     "https://www.irshadcartondealer.com",
-    "http://localhost:5174",
-    "http://localhost:5173",
+    // "http://localhost:5174",
+    // "http://localhost:5173",
   ],
   credentials: true,
 };
