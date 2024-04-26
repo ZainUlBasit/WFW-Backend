@@ -1,7 +1,7 @@
-const router = require("express").Router();
 const { VerifyUserCookie, VerifyAdmin } = require("../Middleware/auth");
 const authControllers = require("../controllers/authControllers");
 
+const router = require("express").Router();
 router.post("/login", authControllers().login);
 router.post("/logout", VerifyUserCookie, authControllers().logout);
 router.post("/register", authControllers().register);

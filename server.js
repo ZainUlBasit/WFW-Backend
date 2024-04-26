@@ -24,6 +24,7 @@ const ReportRoutes = require("./routes/report.routes");
 const PaymentRoutes = require("./routes/payment.routes");
 const StockRoutes = require("./routes/stock-routes");
 const TransactionkRoutes = require("./routes/transaction-route");
+const { successMessage } = require("./utils/ResponseMessage");
 
 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 // End Import all Routes
@@ -61,6 +62,12 @@ mongoose
     console.log(err);
   });
 
+const router = require("express").Router();
+router.post("/api");
+
+app.use("/api", async (req, res) => {
+  return successMessage(res, 200, "Hike");
+});
 app.use("/api/auth", AuthRoutes);
 app.use("/api/company", CompanyRoutes);
 app.use("/api/item", ItemRoutes);
