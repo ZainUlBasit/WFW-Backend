@@ -62,7 +62,13 @@ const CreateTransaction = async (req, res, next) => {
       return createError(res, 400, "Unable to Add Transaction!");
     const updateCustomerAccount = await Customer.findByIdAndUpdate(
       customerId,
-      { $inc: { total: totalAmount, remaining: totalAmount } }, // Decrement qty field by decrementQty
+      {
+        $inc: {
+          total: totalAmount,
+          remaining: Number(totalAmount) - Number(discount),
+          discount: discount,
+        },
+      }, // Decrement qty field by decrementQty
       { new: true }
     );
     return successMessage(res, transaction, "Transaction Successfully Added!");

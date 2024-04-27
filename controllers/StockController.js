@@ -49,7 +49,7 @@ const AddStock = async (req, res) => {
     if (!newStock) return createError(res, 400, "Unable to add new Stock!");
     const updatedItem = await Item.findByIdAndUpdate(
       itemId,
-      { qty: qty },
+      { inc: { qty: qty } },
       { new: true }
     );
     if (!updatedItem)
