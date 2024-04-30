@@ -49,6 +49,9 @@ const AddStock = async (req, res) => {
     if (!newStock) return createError(res, 400, "Unable to add new Stock!");
     const item = await Item.findById(itemId);
     if (!item) return createError(res, 404, "Item not found!");
+    console.log("=======================================");
+    console.log(item);
+    console.log("=======================================");
 
     const updatedItem = await Item.findByIdAndUpdate(
       itemId,
