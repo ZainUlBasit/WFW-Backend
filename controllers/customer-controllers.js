@@ -4,6 +4,7 @@ const Joi = require("joi");
 const { createError, successMessage } = require("../utils/ResponseMessage");
 const Customer = require("../Models/Customer");
 const { isValidObjectId } = require("mongoose");
+const User = require("../Models/User");
 
 //******************************************************
 // working
@@ -19,6 +20,7 @@ const getAllCustomers = async (req, res, next) => {
     return createError(res, 500, err.message || err);
   }
 };
+
 const getBranchCustomers = async (req, res, next) => {
   const { branch } = req.body;
   console.log(req.body);
@@ -143,7 +145,18 @@ const CheckCustomers = async (req, res, next) => {
 const addCustomer = async (req, res, next) => {
   let customer;
   console.log(req.body);
-  const { name, email, contact, cnic, address, branch, ref, page } = req.body;
+  const {
+    name,
+    email,
+    contact,
+    cnic,
+    address,
+    branch,
+    ref,
+    page,
+    type,
+    password,
+  } = req.body;
 
   // schema validation
   const reqStr = Joi.string().required();
@@ -155,6 +168,8 @@ const addCustomer = async (req, res, next) => {
     email: reqStr,
     cnic: reqStr,
     contact: reqStr,
+    password: reqStr,
+    type: reqNum,
     address: reqStr,
     branch: reqNum,
     ref: reqStr,
@@ -179,9 +194,30 @@ const addCustomer = async (req, res, next) => {
       branch,
       ref,
       page,
+      user_type: type,
+      password,
     }).save();
 
     if (!customer) return createError(res, 400, "Unable to Add Customer!");
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const payload = {
+      name,
+      email,
+      password: hashedPassword,
+      role: 3,
+      branch_number: branch,
+    };
+    // register user
+    newUser = new User(payload);
+    const isSaved = await newUser.save();
+    if (!isSaved)
+      return createError(
+        res,
+        500,
+        "Internal server error.Could not register user"
+      );
+
     return successMessage(res, customer, "Customer Successfully Added!");
   } catch (err) {
     console.log(err);
