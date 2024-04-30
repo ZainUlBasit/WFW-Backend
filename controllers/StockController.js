@@ -47,9 +47,12 @@ const AddStock = async (req, res) => {
       branch,
     }).save();
     if (!newStock) return createError(res, 400, "Unable to add new Stock!");
+    const item = await Item.findById(itemId);
+    if (!item) return createError(res, 404, "Item not found!");
+
     const updatedItem = await Item.findByIdAndUpdate(
       itemId,
-      { inc: { qty: qty } },
+      { qty: item[0].qty + qty },
       { new: true }
     );
     if (!updatedItem)
