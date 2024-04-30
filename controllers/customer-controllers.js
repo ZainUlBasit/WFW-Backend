@@ -199,6 +199,7 @@ const addCustomer = async (req, res, next) => {
     }).save();
 
     if (!customer) return createError(res, 400, "Unable to Add Customer!");
+    // changes
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const payload = {
