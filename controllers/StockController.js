@@ -55,7 +55,7 @@ const AddStock = async (req, res) => {
 
     const updatedItem = await Item.findByIdAndUpdate(
       itemId,
-      { qty: item[0].qty + qty },
+      { qty: item.qty + qty },
       { new: true }
     );
     if (!updatedItem)
