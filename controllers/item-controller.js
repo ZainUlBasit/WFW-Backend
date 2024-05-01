@@ -137,6 +137,7 @@ const updateItem = async (req, res, next) => {
     unit: Str,
     purchase: Num,
     sale: Num,
+    sale_shop: Num,
     qty: Num,
   });
 
