@@ -29,6 +29,7 @@ const itemSchema = new Schema({
   unit: reqStr,
   purchase: reqNum,
   sale: reqNum,
+  sale_shop: reqNum,
   qty: { type: Number, default: 0 },
   branch: reqNum,
   addeddate: { type: Number, default: Math.floor(Date.now() / 1000) },

@@ -72,6 +72,7 @@ const addItem = async (req, res, next) => {
     unit,
     purchase,
     sale,
+    sale_shop,
     qty,
     branch,
     addeddate = Math.floor(Date.now() / 1000),
@@ -89,6 +90,7 @@ const addItem = async (req, res, next) => {
     unit: reqStr,
     purchase: reqNum,
     sale: reqNum,
+    sale_shop: reqNum,
     qty: reqNum,
     branch: reqNum,
   });
@@ -105,6 +107,7 @@ const addItem = async (req, res, next) => {
       unit,
       purchase,
       sale,
+      sale_shop,
       qty,
       branch,
       addeddate,

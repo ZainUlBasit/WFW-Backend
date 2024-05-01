@@ -44,6 +44,7 @@ const getBranchCustomers = async (req, res, next) => {
     return createError(res, 500, err.message || err);
   }
 };
+
 const UpdateCustomer = async (req, res, next) => {
   const { customerId, payload } = req.body;
   const reqStr = Joi.string().required();
