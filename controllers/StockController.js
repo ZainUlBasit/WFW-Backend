@@ -99,6 +99,7 @@ const GetStockByAdmin = async (req, res) => {
 };
 const GetStockByBranch = async (req, res) => {
   const {
+    companyId,
     branch,
     startDate = 0,
     endDate = Math.floor(Date.now() / 1000),
@@ -107,6 +108,7 @@ const GetStockByBranch = async (req, res) => {
 
   try {
     const StockStats = await Stock.find({
+      companyId,
       branch,
       date: {
         $gte: startDate,
