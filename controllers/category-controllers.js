@@ -98,6 +98,7 @@ const updateCategory = async (req, res, next) => {
 //******************************************************
 const deleteCategory = async (req, res, next) => {
   const { categoryId } = req.body;
+  console.log("Category Id: ", req.body);
 
   try {
     const delCat = await Category.findByIdAndDelete(categoryId);
