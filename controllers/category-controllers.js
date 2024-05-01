@@ -97,7 +97,8 @@ const updateCategory = async (req, res, next) => {
 // working
 //******************************************************
 const deleteCategory = async (req, res, next) => {
-  const { categoryId } = req.body;
+  const { id: categoryId } = req.params;
+
   console.log("Category Id: ", req.body);
 
   try {
