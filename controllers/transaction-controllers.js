@@ -79,6 +79,7 @@ const CreateTransaction = async (req, res, next) => {
 };
 
 const GetTransactions = async (req, res) => {
+  console.log(req.body);
   try {
     const {
       from = 0,
