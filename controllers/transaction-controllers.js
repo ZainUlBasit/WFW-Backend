@@ -231,7 +231,7 @@ const DeleteInvoice = async (req, res) => {
 
     await Promise.all(
       UpdatedTransactions.map(async (item) => {
-        const { itemId } = item;
+        const { itemId, qty } = item;
         const response = await Item.findByIdAndUpdate(
           itemId,
           { $inc: { qty: qty, out_qty: -qty } }, // Decrement qty field by decrementQty
