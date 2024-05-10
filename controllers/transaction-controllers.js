@@ -195,8 +195,87 @@ const GetItemSummary = async (req, res) => {
   }
 };
 
+const DeleteInvoice = async (req, res) => {
+  const { customerId, invoice_no: current_invoice_no } = req.body;
+
+  try {
+    const transactions = await Transaction.find({
+      invoice_no: current_invoice_no,
+    })
+      .populate("customerId")
+      .populate("items");
+
+    const UpdatedTransactions = transactions
+      .map((data) => {
+        const itemsData = data.items.map((dt) => {
+          return {
+            date: data.date,
+            invoice_no: data.invoice_no,
+            qty: dt.qty,
+            purchase: dt.purchase,
+            price: dt.price,
+            amount: dt.amount,
+            itemId: dt.itemId,
+          };
+        });
+        return itemsData;
+      })
+      .flat();
+
+    const totalAmount = transactions.reduce((total, cust) => {
+      return total + cust.total_amount;
+    }, 0);
+    const totalDiscount = transactions.reduce((total, cust) => {
+      return total + cust.discount;
+    }, 0);
+
+    await Promise.all(
+      UpdatedTransactions.map(async (item) => {
+        const { itemId } = item;
+        const response = await Item.findByIdAndUpdate(
+          itemId,
+          { $inc: { qty: qty, out_qty: -qty } }, // Decrement qty field by decrementQty
+          { new: true } // Return the updated document
+        );
+      })
+    );
+
+    const updateCustomerAccount = await Customer.findByIdAndUpdate(
+      customerId,
+      {
+        $inc: {
+          total: -Number(totalAmount),
+          remaining: -Number(totalAmount),
+          discount: -Number(totalDiscount),
+        },
+      }, // Decrement qty field by decrementQty
+      { new: true }
+    );
+
+    const deleteTransaction = await Transaction.deleteOne({
+      invoice_no: current_invoice_no,
+    });
+
+    if (!deleteTransaction)
+      return createError(
+        res,
+        400,
+        "Unable to delete invoice no " + current_invoice_no
+      );
+    else
+      return successMessage(
+        res,
+        200,
+        "Invoice no" + current_invoice_no + " successfully deleted!"
+      );
+  } catch (error) {
+    return createError(res, 400, error.message || "Internal server error!");
+  }
+};
+
 module.exports = {
   CreateTransaction,
   GetTransactions,
   GetItemSummary,
+  DeleteInvoice,
 };
