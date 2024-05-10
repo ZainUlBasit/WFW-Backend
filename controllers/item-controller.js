@@ -109,6 +109,8 @@ const addItem = async (req, res, next) => {
       sale,
       sale_shop,
       qty,
+      in_qty: qty,
+      out_qty: qty,
       branch,
       addeddate,
     }).save();

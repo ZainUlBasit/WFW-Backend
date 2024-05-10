@@ -43,7 +43,7 @@ const CreateTransaction = async (req, res, next) => {
         const { itemId, qty, amount } = item;
         const response = await Item.findByIdAndUpdate(
           itemId,
-          { $inc: { qty: -qty } }, // Decrement qty field by decrementQty
+          { $inc: { qty: -qty, out_qty: qty } }, // Decrement qty field by decrementQty
           { new: true } // Return the updated document
         );
         totalAmount += amount;
