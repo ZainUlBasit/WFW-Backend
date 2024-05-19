@@ -109,15 +109,26 @@ const GetStockByBranch = async (req, res) => {
   } = req.body;
   if (!branch) return createError(res, 422, "Invalid Branch #!");
 
+  const reqBody = companyId
+    ? {
+        companyId,
+        branch,
+        date: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      }
+    : {
+        branch,
+        date: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      };
+
+  reqBody;
   try {
-    const StockStats = await Stock.find({
-      companyId,
-      branch,
-      date: {
-        $gte: startDate,
-        $lte: endDate,
-      },
-    })
+    const StockStats = await Stock.find(reqBody)
       .populate("itemId")
       .populate("companyId");
 

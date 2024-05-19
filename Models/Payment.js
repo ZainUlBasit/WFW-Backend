@@ -10,7 +10,7 @@ const PaymentSchema = new Schema({
   user_Id: reqStr,
   user_name: reqStr,
   depositor: reqStr,
-  payment_type: { type: Number, enum: [1, 2], required: true }, // 1: Cash 2: Bank
+  payment_type: { type: Number, enum: [1, 2, 3], required: true }, // 1: Cash 2: Bank 3: Check
   bank_name: String,
   bank_number: Number,
   amount: reqNum,

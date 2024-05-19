@@ -16,6 +16,7 @@ const CreateTransaction = async (req, res, next) => {
     date = Math.floor(Date.now() / 1000),
     items,
     discount,
+    invoice_no,
   } = req.body;
 
   if (!customerId || !date || discount === "")
@@ -57,6 +58,7 @@ const CreateTransaction = async (req, res, next) => {
       discount,
       items: productIds,
       total_amount: totalAmount,
+      invoice_no,
     }).save();
 
     if (!return_items) return createError(res, 400, "Unable to Return Items!");
@@ -72,6 +74,54 @@ const CreateTransaction = async (req, res, next) => {
   }
 };
 
+const GetReturns = async (req, res) => {
+  try {
+    const { customerId } = req.body;
+    console.log(req.body);
+
+    if (!customerId) {
+      return createError(res, 422, "Customer ID is required!");
+    }
+
+    // Convert dates to seconds (if they're not already)
+    const transactions = await Return.find({
+      customerId,
+    })
+      .populate("customerId")
+      .populate({
+        path: "items",
+        populate: { path: "itemId" }, // Populate the itemId field inside the items array
+      });
+
+    const UpdatedTransactions = transactions
+      .map((data) => {
+        const itemsData = data.items.map((dt) => {
+          return {
+            date: data.date,
+            invoice_no: data.invoice_no,
+            name: dt.itemId.name,
+            qty: dt.qty,
+            purchase: dt.purchase,
+            price: dt.price,
+            amount: dt.amount,
+          };
+        });
+        return itemsData;
+      })
+      .flat();
+
+    return successMessage(
+      res,
+      UpdatedTransactions,
+      "Returns retrieved successfully!"
+    );
+  } catch (err) {
+    console.error("Error occurred while fetching returns data:", err);
+    return createError(res, 500, err.message || "Internal Server Error");
+  }
+};
+
 module.exports = {
   CreateTransaction,
+  GetReturns,
 };

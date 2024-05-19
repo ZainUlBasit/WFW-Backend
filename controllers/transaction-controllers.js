@@ -50,7 +50,7 @@ const CreateTransaction = async (req, res, next) => {
     !date ||
     discount === "" ||
     invoice_no === "" ||
-    Number(invoice_no) <= 1
+    Number(invoice_no) < 0
   )
     return createError(res, 422, "Required fields are undefined!");
 
