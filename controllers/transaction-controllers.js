@@ -8,6 +8,33 @@ const Product = require("../Models/Product");
 const Item = require("../Models/Item");
 const Customer = require("../Models/Customer");
 
+const CheckBillNumber = async (req, res, next) => {
+  const { invoice_no } = req.body;
+  try {
+    // Retrieve transactions for the given invoice number
+    const transactions = await Transaction.find({ invoice_no });
+
+    if (transactions.length > 0) {
+      // If transactions exist with the given invoice number, return true
+      return successMessage(
+        res,
+        { exists: true },
+        "Invoice number already exists."
+      );
+    } else {
+      // If no transactions are found with the given invoice number, return false
+      return successMessage(
+        res,
+        { exists: false },
+        "Invoice number is available."
+      );
+    }
+  } catch (err) {
+    console.error("Error occurred while checking invoice number:", err);
+    return createError(res, 500, err.message || "Internal Server Error");
+  }
+};
+
 const CreateTransaction = async (req, res, next) => {
   console.log(req.body);
   const {
@@ -15,9 +42,16 @@ const CreateTransaction = async (req, res, next) => {
     date = Math.floor(Date.now() / 1000),
     items,
     discount,
+    invoice_no,
   } = req.body;
 
-  if (!customerId || !date || discount === "")
+  if (
+    !customerId ||
+    !date ||
+    discount === "" ||
+    invoice_no === "" ||
+    Number(invoice_no) <= 1
+  )
     return createError(res, 422, "Required fields are undefined!");
 
   if (!Array.isArray(items))
@@ -56,6 +90,7 @@ const CreateTransaction = async (req, res, next) => {
       discount,
       items: productIds,
       total_amount: totalAmount,
+      invoice_no,
     }).save();
 
     if (!transaction)
@@ -278,4 +313,5 @@ module.exports = {
   GetTransactions,
   GetItemSummary,
   DeleteInvoice,
+  CheckBillNumber,
 };
