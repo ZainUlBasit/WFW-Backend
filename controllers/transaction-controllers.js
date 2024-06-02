@@ -258,10 +258,10 @@ const DeleteInvoice = async (req, res) => {
       .flat();
 
     const totalAmount = transactions.reduce((total, cust) => {
-      return total + cust.total_amount;
+      return total + Number(cust.total_amount);
     }, 0);
     const totalDiscount = transactions.reduce((total, cust) => {
-      return total + cust.discount;
+      return total + Number(cust.discount);
     }, 0);
 
     await Promise.all(
@@ -280,7 +280,7 @@ const DeleteInvoice = async (req, res) => {
       {
         $inc: {
           total: -Number(totalAmount),
-          remaining: -Number(totalAmount),
+          remaining: -Number(totalAmount) + Number(totalDiscount),
           discount: -Number(totalDiscount),
         },
       }, // Decrement qty field by decrementQty
