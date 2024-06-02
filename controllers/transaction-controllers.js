@@ -145,6 +145,7 @@ const GetTransactions = async (req, res) => {
       .map((data) => {
         const itemsData = data.items.map((dt) => {
           return {
+            _id: data._id,
             date: data.date,
             invoice_no: data.invoice_no,
             name: dt.itemId.name,
