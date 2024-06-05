@@ -6,6 +6,6 @@ router.post("/all", TransactionController.GetTransactions);
 router.post("/summary", TransactionController.GetItemSummary);
 router.post("/delete", TransactionController.DeleteInvoice);
 router.post("/check-invoice-no", TransactionController.CheckBillNumber);
-router.patch("/update-invoice-item", TransactionController.UpdateInvoiceItem);
+router.post("/update-invoice-item", TransactionController.UpdateInvoiceItem);
 
 module.exports = router;
