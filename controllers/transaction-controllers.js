@@ -310,7 +310,7 @@ const DeleteInvoice = async (req, res) => {
 };
 
 const UpdateInvoiceItem = async (req, res) => {
-  const { InvoiceId } = req.body;
+  const { InvoiceId, payload } = req.body;
   try {
     const Item = await Product.findById(InvoiceId);
     return successMessage(res, Item, "Data retrieved");
