@@ -310,7 +310,7 @@ const DeleteInvoice = async (req, res) => {
 };
 
 const UpdateInvoiceItem = async (req, res) => {
-  const { InvoiceInfo, updateValue } = req.body;
+  const { customerId, InvoiceInfo, updateValue } = req.body;
   try {
     const UpdatedProduct = await Product.findByIdAndUpdate(
       InvoiceInfo._id,
@@ -336,7 +336,18 @@ const UpdateInvoiceItem = async (req, res) => {
       }, // Decrement qty field by decrementQty
       { new: true }
     );
-    if (UpdateTransaction)
+
+    const updateCustomerAccount = await Customer.findByIdAndUpdate(
+      customerId,
+      {
+        $inc: {
+          total: -Number(InvoiceInfo.amount) + Number(updateValue.amount),
+          remaining: -Number(InvoiceInfo.amount) + Number(updateValue.amount),
+        },
+      }, // Decrement qty field by decrementQty
+      { new: true }
+    );
+    if (updateCustomerAccount)
       return successMessage(
         res,
         UpdateTransaction,
