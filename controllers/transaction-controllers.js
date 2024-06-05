@@ -227,6 +227,7 @@ const GetItemSummary = async (req, res) => {
         let temp = updatedArray[currentIndex];
         temp = {
           ...temp,
+          price: temp.code === "SH" ? dt.price + temp.price : dt.price,
           qty: temp.qty + dt.qty,
         };
         updatedArray[currentIndex] = temp;
