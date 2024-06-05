@@ -162,7 +162,7 @@ const GetTransactions = async (req, res) => {
 
     return successMessage(
       res,
-      UpdatedTransactions,
+      { UpdatedTransactions, transactions },
       "Transactions retrieved successfully!"
     );
   } catch (err) {
