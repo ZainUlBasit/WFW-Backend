@@ -15,7 +15,7 @@ const CreateTransaction = async (req, res, next) => {
     customerId,
     date = Math.floor(Date.now() / 1000),
     items,
-    discount,
+    discount = 0,
     invoice_no,
   } = req.body;
 
