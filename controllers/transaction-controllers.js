@@ -312,7 +312,7 @@ const DeleteInvoice = async (req, res) => {
 const UpdateInvoiceItem = async (req, res) => {
   const { InvoiceId } = req.body;
   try {
-    const Item = await Product.find();
+    const Item = await Product.findById(InvoiceId);
     return successMessage(res, Item, "Data retrieved");
   } catch (err) {
     return createError(res, 400, err.message || "Internal server error!");
