@@ -354,7 +354,7 @@ const UpdateInvoiceItem = async (req, res) => {
       {
         $inc: {
           qty: Number(InvoiceInfo.qty) - Number(updateValue.qty),
-          out_qty: Number(InvoiceInfo.qty) - Number(updateValue.qty),
+          out_qty: -Number(InvoiceInfo.qty) + Number(updateValue.qty),
         },
       }, // Decrement qty field by decrementQty
       { new: true } // Return the updated document
