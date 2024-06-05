@@ -310,10 +310,39 @@ const DeleteInvoice = async (req, res) => {
 };
 
 const UpdateInvoiceItem = async (req, res) => {
-  const { InvoiceId, payload } = req.body;
+  const { InvoiceInfo, updateValue } = req.body;
   try {
-    const Item = await Product.findById(InvoiceId);
-    return successMessage(res, { Item, payload }, "Data retrieved");
+    const UpdatedProduct = await Product.findByIdAndUpdate(
+      InvoiceInfo._id,
+      {
+        price: updateValue.price,
+        qty: updateValue.qty,
+        amount: updateValue.amount,
+      },
+      {
+        new: true,
+      }
+    );
+
+    const UpdateTransaction = await Transaction.findOneAndUpdate(
+      {
+        invoice_no: InvoiceInfo.invoice_no,
+      },
+      {
+        $inc: {
+          total_amount:
+            -Number(InvoiceInfo.amount) + Number(updateValue.amount),
+        },
+      }, // Decrement qty field by decrementQty
+      { new: true }
+    );
+    if (UpdateTransaction)
+      return successMessage(
+        res,
+        UpdateTransaction,
+        "Invoice item successfully updated!"
+      );
+    else return createError(res, 400, "Unable to Update Invoice Item");
   } catch (err) {
     return createError(res, 400, err.message || "Internal server error!");
   }
