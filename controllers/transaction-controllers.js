@@ -348,6 +348,18 @@ const UpdateInvoiceItem = async (req, res) => {
       }, // Decrement qty field by decrementQty
       { new: true }
     );
+
+    const ItemQtyUpdated = await Item.findByIdAndUpdate(
+      InvoiceInfo.itemId,
+      {
+        $inc: {
+          qty: -Number(InvoiceInfo.qty) + Number(updateValue.qty),
+          out_qty: -Number(InvoiceInfo.qty) + Number(updateValue.qty),
+        },
+      }, // Decrement qty field by decrementQty
+      { new: true } // Return the updated document
+    );
+
     if (updateCustomerAccount)
       return successMessage(
         res,
