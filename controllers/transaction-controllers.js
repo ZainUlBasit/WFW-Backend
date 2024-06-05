@@ -313,7 +313,7 @@ const UpdateInvoiceItem = async (req, res) => {
   const { InvoiceId, payload } = req.body;
   try {
     const Item = await Product.findById(InvoiceId);
-    return successMessage(res, Item, "Data retrieved");
+    return successMessage(res, { Item, payload }, "Data retrieved");
   } catch (err) {
     return createError(res, 400, err.message || "Internal server error!");
   }
