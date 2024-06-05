@@ -162,7 +162,7 @@ const GetTransactions = async (req, res) => {
 
     return successMessage(
       res,
-      { UpdatedTransactions, transactions },
+      UpdatedTransactions,
       "Transactions retrieved successfully!"
     );
   } catch (err) {
@@ -186,22 +186,36 @@ const GetItemSummary = async (req, res) => {
         populate: { path: "itemId" }, // Populate the itemId field inside the items array
       });
 
-    const arrayOfItems = transactions.flatMap((dt) => dt.items);
+    const UpdatedTransactions = transactions
+      .map((data) => {
+        const itemsData = data.items.map((dt) => {
+          return {
+            code: dt.itemId.code,
+            name: dt.itemId.name,
+            qty: dt.qty,
+            price: dt.price,
+          };
+        });
+        return itemsData;
+      })
+      .flat();
 
-    const newArray = arrayOfItems.map((dt) => {
-      // If item doesn't have code property, return a new object with necessary properties
-      return {
-        code: dt.itemId.code,
-        name: dt.itemId.name,
-        price: dt.itemId.sale,
-        qty: dt.qty,
-      };
-    });
+    // const arrayOfItems = transactions.flatMap((dt) => dt.items);
 
-    const copyNewArray = [...newArray];
+    // const newArray = arrayOfItems.map((dt) => {
+    //   // If item doesn't have code property, return a new object with necessary properties
+    //   return {
+    //     code: dt.itemId.code,
+    //     name: dt.itemId.name,
+    //     price: dt.itemId.sale,
+    //     qty: dt.qty,
+    //   };
+    // });
+
+    const copyNewArray = [...UpdatedTransactions];
 
     const updatedArray = [];
-    newArray.map((dt) => {
+    UpdatedTransactions.map((dt) => {
       let currentIndex = -1;
       const exists = updatedArray.some((item, index) => {
         if (item.code === dt.code) {
