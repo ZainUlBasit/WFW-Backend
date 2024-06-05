@@ -309,10 +309,21 @@ const DeleteInvoice = async (req, res) => {
   }
 };
 
+const UpdateInvoiceItem = async (req, res) => {
+  const { InvoiceId } = req.body;
+  try {
+    const Item = await Product.find({ _id: InvoiceId });
+    return successMessage(res, Item, "Data retrieved");
+  } catch (err) {
+    return createError(res, 400, err.message || "Internal server error!");
+  }
+};
+
 module.exports = {
   CreateTransaction,
   GetTransactions,
   GetItemSummary,
   DeleteInvoice,
   CheckBillNumber,
+  UpdateInvoiceItem,
 };
