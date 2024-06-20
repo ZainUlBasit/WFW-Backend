@@ -23,7 +23,7 @@ const getAllCustomers = async (req, res, next) => {
 
 const getBranchCustomers = async (req, res, next) => {
   const { branch } = req.body;
-  console.log(req.body);
+  // console.log(req.body);
 
   const CustomerSchema = Joi.object({
     branch: Joi.number().required(),
@@ -36,7 +36,7 @@ const getBranchCustomers = async (req, res, next) => {
   try {
     // customers = await Customer.find({ branch });
     customers = await Customer.find({ branch: branch });
-    console.log("customers:", customers);
+    // console.log("customers:", customers);
     if (!customers) return createError(res, 404, "No Item Found");
     return successMessage(res, customers, null);
   } catch (err) {

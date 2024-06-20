@@ -143,15 +143,45 @@ const getBranchPayments = async (req, res, next) => {
 };
 
 const deletePayment = async (req, res, next) => {
-  const { paymentId } = req.body;
-  if (!paymentId || !isValidObjectId(paymentId)) {
-    return createError(res, 422, "Invalid Payment Id!");
+  const { paymentInfo } = req.body;
+  if (!paymentInfo._id) {
+    return createError(res, 422, "Required fields are undefined!");
   }
 
   try {
-    const deletedPayment = await Payment.findByIdAndDelete(paymentId);
+    const deletedPayment = await Payment.findByIdAndDelete(paymentInfo._id);
     if (!deletedPayment) {
       return createError(res, 400, "Payment with such id does not exist!");
+    }
+
+    if (paymentInfo.user_type === 2 || paymentInfo.user_type === "2") {
+      const updateCustomerAccount = await Customer.findByIdAndUpdate(
+        paymentInfo.user_Id,
+        {
+          $inc: {
+            paid: -paymentInfo.amount,
+            remaining: paymentInfo.amount,
+          },
+        }, // Decrement qty field by decrementQty
+        { new: true }
+      );
+
+      if (!updateCustomerAccount)
+        return createError(res, 400, "Unable to update customer accounts!");
+    } else if (paymentInfo.user_type === 1 || paymentInfo.user_type === "1") {
+      const updateValue = {
+        $inc: {
+          paid: -paymentInfo.amount,
+          remaining: paymentInfo.amount,
+        },
+      };
+      const updatedCompany = await Company.findByIdAndUpdate(
+        paymentInfo.user_Id,
+        updateValue,
+        { new: true }
+      );
+      if (!updatedCompany)
+        return createError(res, 400, "Unable to update company accounts!");
     }
 
     return successMessage(
@@ -165,49 +195,51 @@ const deletePayment = async (req, res, next) => {
 };
 
 const updatePayment = async (req, res, next) => {
-  const { paymentId, payload } = req.body;
+  const { paymentInfo, payload } = req.body;
 
-  // Check the payload
-  const reqStr = Joi.string().required();
-  const reqNum = Joi.number().required();
+  // console.log(req.body);
 
-  const paymentSchema = Joi.object({
-    user_type: Joi.number().valid(1, 2).required(),
-    user_Id: reqStr,
-    depositor: reqStr,
-    payment_type: Joi.number().valid(1, 2).required(),
-    bank_name: reqStr.allow(null),
-    bank_number: reqNum.allow(null),
-    amount: reqNum,
-    date: reqNum.default(() => Math.floor(Date.now() / 1000)),
-    desc: reqStr,
-    branch: reqNum,
-  });
-
-  const paymentUpdateSchema = Joi.object({
-    paymentId: reqStr,
-    payload: paymentSchema,
-  });
-
-  // Check if the validation returns an error
-  const { error } = paymentUpdateSchema.validate(req.body.values);
-  if (error) {
-    return createError(res, 422, error.message);
+  if (!paymentInfo || !payload) {
+    return createError(res, 422, "Required field are undefined!");
   }
 
   let payment;
   try {
-    payment = await Payment.findById(paymentId);
+    payment = await Payment.findByIdAndUpdate(paymentInfo._id, payload, {
+      new: true,
+    });
     if (!payment) {
       return createError(res, 404, "Payment with such id was not found!");
     }
+    if (paymentInfo.user_type === 2 || paymentInfo.user_type === "2") {
+      const updateCustomerAccount = await Customer.findByIdAndUpdate(
+        paymentInfo.user_Id,
+        {
+          $inc: {
+            paid: -paymentInfo.amount + payload.amount,
+            remaining: paymentInfo.amount - payload.amount,
+          },
+        }, // Decrement qty field by decrementQty
+        { new: true }
+      );
 
-    // Update payment properties
-    Object.assign(payment, payload);
-
-    // Save the updated payment
-    await payment.save();
-
+      if (!updateCustomerAccount)
+        return createError(res, 400, "Unable to update customer accounts!");
+    } else if (paymentInfo.user_type === 1 || paymentInfo.user_type === "1") {
+      const updateValue = {
+        $inc: {
+          paid: -paymentInfo.amount + payload.amount,
+          remaining: -paymentInfo.amount + payload.amount,
+        },
+      };
+      const updatedCompany = await Company.findByIdAndUpdate(
+        paymentInfo.user_Id,
+        updateValue,
+        { new: true }
+      );
+      if (!updatedCompany)
+        return createError(res, 400, "Unable to update company accounts!");
+    }
     return successMessage(res, payment, "Payment Successfully Updated!");
   } catch (err) {
     console.log("error: ", err);

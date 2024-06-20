@@ -327,6 +327,10 @@ const DeleteInvoice = async (req, res) => {
 
 const UpdateInvoiceItem = async (req, res) => {
   const { customerId, InvoiceInfo, updateValue } = req.body;
+
+  // console.log(req.body);
+  // return createError(res, 422, "testing!");
+
   try {
     const UpdatedProduct = await Product.findByIdAndUpdate(
       InvoiceInfo._id,
