@@ -247,10 +247,68 @@ const updatePayment = async (req, res, next) => {
   }
 };
 
+const DeletePayment = async (req, res, next) => {
+  const { paymentId, user_type, user_Id, amount } = req.body;
+
+  const reqStr = Joi.string().required();
+  const reqNum = Joi.number().required();
+
+  const deletePaymentSchema = Joi.object({
+    paymentId: reqStr,
+    user_type: Joi.number().valid(1, 2).required(),
+    user_Id: reqStr,
+    amount: reqNum,
+  });
+
+  const { error } = deletePaymentSchema.validate(req.body);
+  if (error) {
+    return createError(res, 422, error.message);
+  }
+
+  try {
+    // Find and delete the payment
+    const deletedPayment = await Payment.findByIdAndDelete(paymentId);
+    if (!deletedPayment) {
+      return createError(res, 400, "Payment not found or already deleted!");
+    }
+
+    // Update the account
+    if (user_type === 2 || user_type === "2") {
+      const updateCustomerAccount = await Customer.findByIdAndUpdate(
+        user_Id,
+        { $inc: { paid: -amount, remaining: amount } }, // Increment qty field by amount
+        { new: true }
+      );
+
+      if (!updateCustomerAccount) {
+        return createError(res, 400, "Unable to update customer accounts!");
+      }
+    } else if (user_type === 1 || user_type === "1") {
+      const updateValue = {
+        $inc: { paid: -amount, remaining: amount },
+      };
+      const updatedCompany = await Company.findByIdAndUpdate(
+        user_Id,
+        updateValue,
+        { new: true }
+      );
+
+      if (!updatedCompany) {
+        return createError(res, 400, "Unable to update company accounts!");
+      }
+    }
+
+    return successMessage(res, deletedPayment, "Payment Successfully Deleted!");
+  } catch (err) {
+    return createError(res, 500, err.message || "Internal Server Error!");
+  }
+};
+
 module.exports = {
   addPayment,
   getAllPayments,
   getBranchPayments,
   deletePayment,
   updatePayment,
+  DeletePayment,
 };
