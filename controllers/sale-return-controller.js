@@ -75,7 +75,7 @@ const CreateTransaction = async (req, res, next) => {
 };
 
 const DeleteTransaction = async (req, res, next) => {
-  const { returnId } = req.params;
+  const { id: returnId } = req.params;
 
   if (!returnId) {
     return createError(res, 422, "Return ID is required!");
