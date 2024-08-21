@@ -155,6 +155,7 @@ const GetReturns = async (req, res) => {
       .map((data) => {
         const itemsData = data.items.map((dt) => {
           return {
+            return_id: data._id,
             date: data.date,
             invoice_no: data.invoice_no,
             name: dt.itemId.name,
@@ -194,7 +195,6 @@ const DeleteInvoice = async (req, res) => {
       .map((data) => {
         const itemsData = data.items.map((dt) => {
           return {
-            return_id: data._id,
             date: data.date,
             invoice_no: data.invoice_no,
             qty: dt.qty,
