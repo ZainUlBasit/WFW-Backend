@@ -145,7 +145,7 @@ const GetTransactions = async (req, res) => {
       .map((data) => {
         const itemsData = data.items.map((dt) => {
           return {
-            transaction_id: transactions._id,
+            transaction_id: data._id,
             _id: dt._id,
             itemId: dt.itemId._id,
             date: data.date,
