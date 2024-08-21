@@ -2,6 +2,7 @@ const router = require("express").Router();
 const TransactionController = require("../controllers/transaction-controllers");
 
 router.post("/create", TransactionController.CreateTransaction);
+router.delete("/delete/:id", TransactionController.DeleteTransaction);
 router.post("/all", TransactionController.GetTransactions);
 router.post("/summary", TransactionController.GetItemSummary);
 router.post("/delete", TransactionController.DeleteInvoice);

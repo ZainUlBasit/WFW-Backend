@@ -12,5 +12,6 @@ router.get("/all", CompanyController.getAllCompanies);
 router.post("/branch", CompanyController.getBranchCompanies);
 router.patch("/update", CompanyController.updateCompany);
 router.delete("/delete/:id", CompanyController.deleteCompany);
+router.post("/item-summary", CompanyController.GetItemSummaryCompany);
 
 module.exports = router;

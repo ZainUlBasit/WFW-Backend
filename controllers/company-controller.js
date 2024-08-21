@@ -1,6 +1,7 @@
 const Joi = require("joi");
 const Company = require("../Models/Company");
 const { createError, successMessage } = require("../utils/ResponseMessage");
+const Item = require("../Models/Item");
 
 const getAllCompanies = async (req, res, next) => {
   let companies;
@@ -294,6 +295,57 @@ const getCompanyPayment = async (req, res, next) => {
   return res.status(201).json(companyPayment);
 };
 
+const GetItemSummaryCompany = async (req, res, next) => {
+  const { companyId } = req.body;
+  try {
+    const AllCompanyItems = await Item.find({ companyId: companyId });
+
+    const UpdatedCompanyItems = AllCompanyItems.map((dt) => {
+      return {
+        code: dt.code,
+        name: dt.name,
+        qty: dt.qty,
+        in_qty: dt.in_qty,
+        sale: dt.sale,
+        purchase: dt.purchase,
+      };
+    });
+
+    // const copyNewArray = [...UpdatedCompanyItems];
+
+    const updatedArray = [];
+    UpdatedCompanyItems.map((dt) => {
+      let currentIndex = -1;
+      const exists = updatedArray.some((item, index) => {
+        if (item.code === dt.code) {
+          currentIndex = index;
+          return true;
+        } else false;
+      });
+      if (exists) {
+        let temp = updatedArray[currentIndex];
+        temp = {
+          ...temp,
+          price: temp.code === "SH" ? dt.price + temp.price : dt.price,
+          in_qty: temp.in_qty + dt.in_qty,
+          qty: temp.qty + dt.qty,
+        };
+        updatedArray[currentIndex] = temp;
+      } else {
+        updatedArray.push(dt);
+      }
+    });
+
+    if (AllCompanyItems) {
+      return successMessage(res, updatedArray, "Data Successfully retrieved!");
+    } else {
+      return createError(res, 404, "Data not found!");
+    }
+  } catch (err) {
+    return createError(res, 400, "Internal Server Error. Please Try Again!");
+  }
+};
+
 module.exports = {
   getAllCompanies,
   getBranchCompanies,
@@ -304,4 +356,5 @@ module.exports = {
   addCompanyPayment,
   getCompanyPayment,
   updateCompanyPayment,
+  GetItemSummaryCompany,
 };

@@ -186,56 +186,26 @@ const GetItemSummary = async (req, res) => {
         populate: { path: "itemId" }, // Populate the itemId field inside the items array
       });
 
-    const UpdatedTransactions = transactions
-      .map((data) => {
-        const itemsData = data.items.map((dt) => {
-          return {
-            code: dt.itemId.code,
-            name: dt.itemId.name,
-            qty: dt.qty,
-            price: dt.price,
-          };
-        });
-        return itemsData;
-      })
-      .flat();
+    const UpdatedTransactions = transactions.flatMap((data) =>
+      data.items.map((dt) => ({
+        code: dt.itemId.code,
+        name: dt.itemId.name,
+        qty: dt.qty,
+        price: dt.price,
+      }))
+    );
 
-    // const arrayOfItems = transactions.flatMap((dt) => dt.items);
-
-    // const newArray = arrayOfItems.map((dt) => {
-    //   // If item doesn't have code property, return a new object with necessary properties
-    //   return {
-    //     code: dt.itemId.code,
-    //     name: dt.itemId.name,
-    //     price: dt.itemId.sale,
-    //     qty: dt.qty,
-    //   };
-    // });
-
-    const copyNewArray = [...UpdatedTransactions];
-
-    const updatedArray = [];
-    UpdatedTransactions.map((dt) => {
-      let currentIndex = -1;
-      const exists = updatedArray.some((item, index) => {
-        if (item.code === dt.code) {
-          currentIndex = index;
-          return true;
-        } else false;
-      });
-      if (exists) {
-        let temp = updatedArray[currentIndex];
-        temp = {
-          ...temp,
-          price: temp.code === "SH" ? dt.price + temp.price : dt.price,
-          qty: temp.qty + dt.qty,
-        };
-        updatedArray[currentIndex] = temp;
+    const updatedArray = UpdatedTransactions.reduce((acc, dt) => {
+      const existingItem = acc.find((item) => item.code === dt.code);
+      if (existingItem) {
+        existingItem.qty = dt.code === "SH" ? 1 : dt.qty + existingItem.qty;
+        existingItem.price =
+          dt.code === "SH" ? existingItem.price + dt.price : dt.price;
       } else {
-        updatedArray.push(dt);
+        acc.push({ ...dt });
       }
-    });
-
+      return acc;
+    }, []);
     return successMessage(
       res,
       updatedArray,
@@ -391,8 +361,64 @@ const UpdateInvoiceItem = async (req, res) => {
   }
 };
 
+const DeleteTransaction = async (req, res, next) => {
+  const { id: transactionId } = req.params;
+
+  if (!transactionId) {
+    return createError(res, 422, "Transaction ID is required!");
+  }
+
+  try {
+    // Find the transaction to delete
+    const transaction = await Transaction.findById(transactionId).populate(
+      "items"
+    );
+    if (!transaction) {
+      return createError(res, 404, "Transaction not found!");
+    }
+
+    // Revert item quantities and update the customer account
+    let totalAmount = 0;
+
+    await Promise.all(
+      transaction.items.map(async (productId) => {
+        const product = await Product.findById(productId);
+        if (product) {
+          const { itemId, qty, amount } = product;
+          await Item.findByIdAndUpdate(
+            itemId,
+            { $inc: { qty: qty, out_qty: -qty } } // Revert the quantity change
+          );
+          totalAmount += amount;
+        }
+      })
+    );
+
+    // Delete the transaction
+    await Transaction.findByIdAndDelete(transactionId);
+
+    // Update the customer account
+    const customer = await Customer.findById(transaction.customerId);
+    if (customer) {
+      await Customer.findByIdAndUpdate(transaction.customerId, {
+        $inc: {
+          total: -totalAmount,
+          remaining: -totalAmount + Number(customer.discount),
+          discount: -transaction.discount,
+        },
+      });
+    }
+
+    return successMessage(res, null, "Transaction successfully deleted!");
+  } catch (err) {
+    console.log("Error Occurred While Deleting Transaction: ", err);
+    return createError(res, 500, err.message || err);
+  }
+};
+
 module.exports = {
   CreateTransaction,
+  DeleteTransaction,
   GetTransactions,
   GetItemSummary,
   DeleteInvoice,
