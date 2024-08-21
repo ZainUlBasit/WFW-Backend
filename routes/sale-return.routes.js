@@ -3,6 +3,7 @@ const SaleReturnController = require("../controllers/sale-return-controller");
 
 router.post("/create", SaleReturnController.CreateTransaction);
 router.post("/delete", SaleReturnController.DeleteInvoice);
+router.delete("/delete/:id", SaleReturnController.DeleteTransaction);
 router.post("/branch", SaleReturnController.GetReturns);
 // router.get("/branch", SaleReturnController.GetBranchSales);
 // router.patch("/update", SaleReturnController.UpdateSales);

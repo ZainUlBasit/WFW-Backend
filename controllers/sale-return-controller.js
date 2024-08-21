@@ -74,6 +74,64 @@ const CreateTransaction = async (req, res, next) => {
   }
 };
 
+const DeleteTransaction = async (req, res, next) => {
+  const { returnId } = req.params;
+
+  if (!returnId) {
+    return createError(res, 422, "Return ID is required!");
+  }
+
+  try {
+    // Find the return document to get details
+    const returnItems = await Return.findById(returnId).populate("items");
+
+    if (!returnItems) {
+      return createError(res, 404, "Return not found!");
+    }
+
+    // Reverse the update on the Customer
+    await Customer.findByIdAndUpdate(
+      returnItems.customerId,
+      {
+        $inc: {
+          return_amount: -returnItems.total_amount,
+          remaining: returnItems.total_amount,
+        },
+      },
+      { new: true }
+    );
+
+    // Reverse the updates on Items
+    await Promise.all(
+      returnItems.items.map(async (item) => {
+        const { itemId, qty } = item;
+
+        // Revert item quantity
+        await Item.findByIdAndUpdate(
+          itemId,
+          { $inc: { qty: qty, out_qty: -qty } },
+          { new: true }
+        );
+
+        // Remove the product
+        await Product.findByIdAndDelete(item._id);
+      })
+    );
+
+    // Remove the return document
+    const deletedReturn = await Return.findByIdAndDelete(returnId);
+
+    if (!deletedReturn) {
+      return createError(res, 400, "Unable to delete return!");
+    }
+
+    return successMessage(res, deletedReturn, "Return Successfully Deleted!");
+  } catch (err) {
+    console.log("Error Occur While Deleting Return: ", err);
+    return createError(res, 500, err.message || err);
+  }
+};
+
 const GetReturns = async (req, res) => {
   try {
     const { customerId } = req.body;
@@ -136,6 +194,7 @@ const DeleteInvoice = async (req, res) => {
       .map((data) => {
         const itemsData = data.items.map((dt) => {
           return {
+            return_id: data._id,
             date: data.date,
             invoice_no: data.invoice_no,
             qty: dt.qty,
@@ -200,6 +259,7 @@ const DeleteInvoice = async (req, res) => {
 };
 
 module.exports = {
+  DeleteTransaction,
   CreateTransaction,
   GetReturns,
   DeleteInvoice,
