@@ -9,5 +9,6 @@ router.get("/refresh", VerifyUserCookie, authControllers().autoLogin);
 router.get("/branch", authControllers().branches);
 router.delete("/branch/:id", authControllers().deleteBranch);
 router.patch("/branch", authControllers().updateBranch);
+router.patch("/update-password", authControllers().updatePassword);
 
 module.exports = router;

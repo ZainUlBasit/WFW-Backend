@@ -167,6 +167,22 @@ function authControllers() {
         return createError(res, 400, err.message);
       }
     },
+    updatePassword: async (req, res) => {
+      const { password } = req.body;
+      const { id } = req.params;
+
+      try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const updateUserPassword = await User.findByIdAndUpdate(id, {
+          password: hashedPassword,
+        });
+        if (!updateUserPassword)
+          return createError(res, 404, "User not found!");
+        else return successMessage(res, updateUserPassword, null);
+      } catch (err) {
+        return createError(res, 400, err.message);
+      }
+    },
     deleteBranch: async (req, res) => {
       const id = req.params.id;
       console.log(id);
